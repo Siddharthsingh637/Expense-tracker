@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import re
 import uuid
-from datetime import UTC, date, datetime, timedelta
+from datetime import UTC, date, datetime, time, timedelta
 from typing import Any
 
 from fastapi import APIRouter, Depends, Query, Request
@@ -19,6 +19,7 @@ from expense_tracker_api.core.config import (
 from expense_tracker_api.core.dependencies import get_current_user, get_db
 from expense_tracker_api.models import (
     Attachment,
+    Budget,
     BudgetAllocation,
     BudgetPeriod,
     BudgetTransfer,
@@ -63,6 +64,31 @@ MOBILE_KEYS = {
 
 class AtomicGroupConflict(ValueError):
     pass
+
+
+def _purge_tombstones(db: Session, user_id: uuid.UUID, cutoff: datetime) -> list[str]:
+    """Remove expired deleted rows in leaf-first order; preserve referenced parents."""
+    purge_order = (
+        Settlement, Attachment, Transaction, BudgetTransfer, BudgetAllocation,
+        PlaceRule, Budget, GroupBill, Person, BudgetPeriod, Category,
+    )
+    storage_keys: list[str] = []
+    for model in purge_order:
+        rows = list(db.scalars(select(model).where(
+            model.user_id == user_id, model.deleted_at.is_not(None), model.deleted_at < cutoff
+        ).limit(200)))
+        for row in rows:
+            storage_key = row.storage_key if isinstance(row, Attachment) else None
+            try:
+                with db.begin_nested():
+                    db.delete(row)
+                    db.flush()
+                if storage_key:
+                    storage_keys.append(storage_key)
+            except IntegrityError:
+                # An active dependent still needs this tombstoned parent retained.
+                continue
+    return storage_keys
 
 
 def _reason(exc: Exception) -> str:
@@ -228,6 +254,12 @@ def _validate_resource_data(resource: str, values: dict[str, Any]) -> None:
             raise ValueError("validation_error: timezone must be an IANA timezone") from exc
         if not re.fullmatch(r"\d{2}:\d{2}(?::\d{2})?", str(values.get("local_time", ""))):
             raise ValueError("validation_error: local_time must use HH:MM or HH:MM:SS")
+        try:
+            time.fromisoformat(values["local_time"])
+        except ValueError as exc:
+            raise ValueError("validation_error: local_time is not a valid clock time") from exc
+        if values.get("local_date") is None and values.get("transaction_date") is None:
+            raise ValueError("validation_error: transaction date is required")
     elif resource == "budget_period":
         integer("total_paise")
         if values.get("end_date") < values.get("start_date"):
@@ -252,6 +284,8 @@ def _validate_resource_data(resource: str, values: dict[str, Any]) -> None:
             raise ValueError("validation_error: payments must be a person-to-paise map")
         if any(isinstance(amount, bool) or not isinstance(amount, int) or amount < 0 for amount in payments.values()):
             raise ValueError("invariant_violation: payer amounts must be nonnegative integer paise")
+        if sum(payments.values()) <= 0:
+            raise ValueError("invariant_violation: group bill total must be positive integer paise")
         if values.get("method") not in {"equal", "custom", "percent", "shares", "itemized"}:
             raise ValueError("validation_error: invalid split method")
         if not str(values.get("title", "")).strip():
@@ -359,7 +393,13 @@ def _apply_one(db: Session, user: User, change, now: datetime) -> dict[str, Any]
             raise ValueError("invariant_violation: payer amounts must sum to total_paise")
         if "shares" in values:
             shares = values.pop("shares")
-            if sum(int(s.get("amount_paise", 0)) for s in shares) != total:
+            if not isinstance(shares, list) or any(
+                not isinstance(s, dict)
+                or isinstance(s.get("amount_paise"), bool)
+                or not isinstance(s.get("amount_paise"), int)
+                or s["amount_paise"] <= 0
+                for s in shares
+            ) or sum(s["amount_paise"] for s in shares) != total:
                 raise ValueError("invariant_violation: shares must sum to total_paise")
         values.pop("total_paise", None)
         if set(payments) - set(values.get("person_ids", [])):
@@ -368,6 +408,11 @@ def _apply_one(db: Session, user: User, change, now: datetime) -> dict[str, Any]
             if person_id != "me" and db.scalar(select(Person.id).where(Person.user_id == user.id, Person.id == person_id)) is None:
                 raise ValueError("missing_reference: group bill participant does not exist")
         for item in values.get("items") or []:
+            if not isinstance(item, dict):
+                raise TypeError("validation_error: group bill items must be objects")
+            amount = item.get("amountPaise", item.get("amount_paise"))
+            if isinstance(amount, bool) or not isinstance(amount, int) or amount <= 0:
+                raise ValueError("invariant_violation: item amounts must be positive integer paise")
             if set(item.get("assignedPersonIds", [])) - set(values.get("person_ids", [])):
                 raise ValueError("invariant_violation: item assignees must be participants")
     if change.resource == "budget_allocation" and "period_id" not in values and "month" in values:
@@ -492,6 +537,7 @@ def sync_pull(cursor: int = Query(default=0, ge=0), limit: int = Query(default=5
     state = db.get(UserSyncState, user.id)
     retained_from = state.retained_from_seq if state else 0
     cutoff = utcnow() - timedelta(days=SYNC_TOMBSTONE_DAYS)
+    storage_keys = _purge_tombstones(db, user.id, cutoff)
     expired = list(db.scalars(select(SyncChange).where(SyncChange.user_id == user.id, SyncChange.created_at < cutoff)))
     if expired:
         if state is not None:
@@ -501,8 +547,13 @@ def sync_pull(cursor: int = Query(default=0, ge=0), limit: int = Query(default=5
         db.flush()
         retained_from = state.retained_from_seq if state else retained_from
     if cursor and cursor < retained_from:
-        if expired:
+        if expired or storage_keys:
             db.commit()
+            if storage_keys:
+                from expense_tracker_api.api.v1.attachments import get_storage
+                storage = get_storage()
+                for key in storage_keys:
+                    storage.delete(key)
         error(410, "cursor_too_old", "Cursor is outside retained sync history; perform a full pull")
     if cursor == 0:
         rows = []
@@ -515,8 +566,13 @@ def sync_pull(cursor: int = Query(default=0, ge=0), limit: int = Query(default=5
         rows.sort(key=lambda item: item[0])
         page = rows[:limit]
         more = len(rows) > limit
-        if expired:
+        if expired or storage_keys:
             db.commit()
+            if storage_keys:
+                from expense_tracker_api.api.v1.attachments import get_storage
+                storage = get_storage()
+                for key in storage_keys:
+                    storage.delete(key)
         return {"changes":[{"resource":resource,"id":record_id,"op":op,"sync_seq":seq,
                             "created_at":wire_value(created),"updated_at":wire_value(updated),
                             "deleted_at":wire_value(deleted) if deleted else None,"data":snapshot}
@@ -535,6 +591,11 @@ def sync_pull(cursor: int = Query(default=0, ge=0), limit: int = Query(default=5
         changes.append({"resource": row.resource, "id": row.record_id, "op": row.operation,
                         "sync_seq": row.sync_seq, "created_at":created_at,
                         "updated_at":updated_at, "deleted_at":deleted_at, "data":snapshot})
-    if expired:
+    if expired or storage_keys:
         db.commit()
+        if storage_keys:
+            from expense_tracker_api.api.v1.attachments import get_storage
+            storage = get_storage()
+            for key in storage_keys:
+                storage.delete(key)
     return {"changes": changes, "next_cursor": page[-1].sync_seq if page else cursor, "has_more": more}

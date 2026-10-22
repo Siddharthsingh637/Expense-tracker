@@ -192,6 +192,27 @@ def test_future_timestamp_is_clamped_to_server_time(client):
     assert datetime.fromisoformat(row["updated_at"]) <= datetime.now(UTC) + timedelta(minutes=5)
 
 
+def test_sync_rejects_invalid_clock_time_and_empty_group_bill_total(client):
+    tokens = register(client, "invariants@example.com")
+    headers = auth_headers(tokens)
+    categories = client.get("/api/v1/categories", headers=headers).json()["items"]
+    now = datetime.now(UTC).isoformat()
+    transaction_id = str(uuid.uuid4())
+    bad_transaction = {"resource":"transaction", "id":transaction_id, "op":"upsert", "updated_at":now,
+                       "data":{"id":transaction_id,"createdAt":now,"amount":100,"categoryId":categories[0]["id"],
+                               "date":"2026-10-23","time":"99:99","paymentMode":"cash"}}
+    rejected = _push(client, headers, [bad_transaction]).json()["results"][0]
+    assert rejected["status"] == "rejected"
+    assert rejected["reason_code"] == "validation_error"
+    bill_id = str(uuid.uuid4())
+    bad_bill = {"resource":"group_bill", "id":bill_id, "op":"upsert", "updated_at":now,
+                "data":{"id":bill_id,"title":"Empty","date":"2026-10-23","personIds":["me"],
+                        "payments":{"me":0},"method":"equal","isSettled":False,"createdAt":now}}
+    rejected_bill = _push(client, headers, [bad_bill]).json()["results"][0]
+    assert rejected_bill["status"] == "rejected"
+    assert rejected_bill["reason_code"] == "invariant_violation"
+
+
 def test_stale_member_rejects_entire_atomic_group(client):
     tokens = register(client, "stale-group@example.com")
     headers = auth_headers(tokens)
@@ -220,3 +241,20 @@ def test_expired_cursor_returns_cursor_too_old_but_zero_bootstraps(client, db_se
     assert stale.status_code == 410
     assert stale.json()["error"]["code"] == "cursor_too_old"
     assert client.get("/api/v1/sync/pull?cursor=0", headers=headers).status_code == 200
+
+
+def test_tombstone_rows_are_pruned_after_retention(client, db_session):
+    from expense_tracker_api.models import Category
+
+    tokens = register(client, "purge-tombstone@example.com")
+    headers = auth_headers(tokens)
+    change = _new_category("Expired tombstone")
+    assert _push(client, headers, [change]).json()["results"][0]["status"] == "applied"
+    delete_change = {**change, "op":"delete", "updated_at":(datetime.now(UTC)+timedelta(seconds=1)).isoformat(), "data":{}}
+    assert _push(client, headers, [delete_change]).json()["results"][0]["status"] == "applied"
+    row = db_session.query(Category).filter_by(id=uuid.UUID(change["id"])).one()
+    row.deleted_at = datetime.now(UTC) - timedelta(days=91)
+    db_session.commit()
+    full = client.get("/api/v1/sync/pull?cursor=0&limit=100", headers=headers)
+    assert full.status_code == 200
+    assert db_session.query(Category).filter_by(id=uuid.UUID(change["id"])).one_or_none() is None
