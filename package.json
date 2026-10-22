@@ -1,0 +1,28 @@
+{
+  "name": "expense-tracker",
+  "private": true,
+  "packageManager": "pnpm@11.10.0",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "turbo run dev start --parallel",
+    "setup": "pnpm --filter @expense-tracker/api setup",
+    "api:setup": "pnpm --filter @expense-tracker/api setup",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "test": "turbo run test",
+    "typecheck": "turbo run typecheck",
+    "api:dev": "pnpm --filter @expense-tracker/api dev",
+    "api:lint": "pnpm --filter @expense-tracker/api lint",
+    "api:test": "pnpm --filter @expense-tracker/api test",
+    "api:migrate": "pnpm --filter @expense-tracker/api migrate",
+    "api:seed": "pnpm --filter @expense-tracker/api seed",
+    "api:smoke": "pnpm --filter @expense-tracker/api smoke",
+    "api:openapi": "pnpm --filter @expense-tracker/api openapi",
+    "api:client": "pnpm --filter @expense-tracker/api openapi && pnpm --filter @expense-tracker/api-client generate"
+  },
+  "devDependencies": {
+    "turbo": "^2.5.0"
+  }
+}

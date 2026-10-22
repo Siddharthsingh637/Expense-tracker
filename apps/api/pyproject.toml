@@ -1,0 +1,36 @@
+[project]
+name = "expense-tracker-api"
+version = "0.1.0"
+description = "Expense Tracker API"
+requires-python = ">=3.12"
+dependencies = [
+    "alembic>=1.15,<2",
+    "anthropic>=0.52,<1",
+    "fastapi>=0.115,<1",
+    "psycopg[binary]>=3.2,<4",
+    "pillow>=11,<13",
+    "python-multipart>=0.0.20,<1",
+    "pydantic-settings>=2.6,<3",
+    "pwdlib[argon2]>=0.2,<1",
+    "sqlalchemy>=2.0,<3",
+    "uvicorn[standard]>=0.34,<1",
+]
+
+[dependency-groups]
+dev = [
+    "httpx>=0.28,<1",
+    "pytest>=8.3,<9",
+    "ruff>=0.11,<1",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+markers = ["live: calls the real Anthropic API and may incur usage charges"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+ignore = ["B008"]

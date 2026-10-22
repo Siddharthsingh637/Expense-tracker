@@ -1,0 +1,32 @@
+{
+  "party_example": {
+    "total_paise": 850000,
+    "person_ids": ["A", "B", "C", "D", "E"],
+    "payments": {"A": 500000, "B": 70000, "C": 20000, "D": 10000, "E": 250000},
+    "equal_shares": {"A": 170000, "B": 170000, "C": 170000, "D": 170000, "E": 170000},
+    "net_paise": {"A": 330000, "B": -100000, "C": -150000, "D": -160000, "E": 80000},
+    "settlements": [
+      {"from": "D", "to": "A", "amount_paise": 160000},
+      {"from": "C", "to": "A", "amount_paise": 150000},
+      {"from": "B", "to": "A", "amount_paise": 20000},
+      {"from": "B", "to": "E", "amount_paise": 80000}
+    ]
+  },
+  "hundred_rupees_three_people": {
+    "total_paise": 10000,
+    "person_ids": ["X", "Y", "Z"],
+    "payments": {"X": 10000, "Y": 0, "Z": 0},
+    "equal_shares": {"X": 3334, "Y": 3333, "Z": 3333},
+    "net_paise": {"X": 6666, "Y": -3333, "Z": -3333},
+    "settlements": [
+      {"from": "Y", "to": "X", "amount_paise": 3333},
+      {"from": "Z", "to": "X", "amount_paise": 3333}
+    ]
+  },
+  "month_boundaries": [
+    {"month": "2025-10", "start_day": 1, "start_date": "2025-10-01", "end_date": "2025-10-31"},
+    {"month": "2025-10", "start_day": 15, "start_date": "2025-10-15", "end_date": "2025-11-14"},
+    {"month": "2025-02", "start_day": 1, "start_date": "2025-02-01", "end_date": "2025-02-28"},
+    {"month": "2025-12", "start_day": 25, "start_date": "2025-12-25", "end_date": "2026-01-24"}
+  ]
+}
