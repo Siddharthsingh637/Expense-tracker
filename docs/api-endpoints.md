@@ -80,7 +80,7 @@ Every AI route is authenticated, checks the user's master and feature toggles, a
 | POST | `/ai/month-narrative` | `{ "report": {...}, "categories": [...] }`; report must be pre-aggregated by mobile |
 | POST | `/ai/parse-receipt` | multipart field `file`, or JSON `{ "attachment_id": "uuid" }` |
 
-AI limit errors return 429 with `Retry-After`; unavailable provider/toggle returns 503 `ai_unavailable`. Send the Anthropic key in `apps/api/.env` as `ANTHROPIC_API_KEY`; an empty key selects deterministic mock AI.
+AI limit errors return 429 with `Retry-After`; unavailable provider/toggle returns 503 `ai_unavailable`. Send the Anthropic key in `apps/api/.env.local` as `ANTHROPIC_API_KEY`; an empty key selects deterministic mock AI.
 
 ## Health and interactive docs
 

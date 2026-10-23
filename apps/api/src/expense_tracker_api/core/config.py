@@ -9,7 +9,7 @@ PROJECT_DIR = Path(__file__).resolve().parents[3]
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
-        env_file=PROJECT_DIR / ".env",
+        env_file=PROJECT_DIR / ".env.local",
         env_file_encoding="utf-8",
         extra="ignore",
     )

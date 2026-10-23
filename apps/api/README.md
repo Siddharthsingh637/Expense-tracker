@@ -4,7 +4,7 @@ FastAPI backend for Paisa's local-first mobile app. The phone remains the source
 
 ## Requirements and first run
 
-Install Node/pnpm, Python 3.12+, uv, and Docker Desktop (or Docker Engine with Compose). The setup command creates a private `apps/api/.env` if missing, starts only this project's Postgres container on `127.0.0.1:54329`, and installs Python dependencies in `apps/api/.venv`.
+Install Node/pnpm, Python 3.12+, uv, and Docker Desktop (or Docker Engine with Compose). The setup command creates a private `apps/api/.env.local` if missing, starts only this project's Postgres container on `127.0.0.1:54329`, and installs Python dependencies in `apps/api/.venv`.
 
 ```sh
 pnpm api:setup
@@ -13,7 +13,7 @@ pnpm dev
 
 `pnpm dev` runs workspace development tasks together. To start only the API, use `pnpm api:dev`. API docs are at `http://127.0.0.1:8000/docs`; liveness is `/health`.
 
-Only `ANTHROPIC_API_KEY` needs a human value. Leave it empty to use the deterministic built-in mock. To use Anthropic, paste the key into `apps/api/.env`; the default model aliases are `claude-haiku-5-5` and `claude-sonnet-5-5`. `.env` is ignored by Git and initialized with local-only random credentials.
+Only `ANTHROPIC_API_KEY` needs a human value. Leave it empty to use the deterministic built-in mock. To use Anthropic, paste the key into `apps/api/.env.local`; the default model aliases are `claude-haiku-5-5` and `claude-sonnet-5-5`. `.env.local` is ignored by Git and initialized with local-only random credentials.
 
 ## Common commands
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Create a private local .env without overwriting developer configuration."""
+"""Create a private local .env.local without overwriting developer configuration."""
 from __future__ import annotations
 
 import secrets
@@ -7,7 +7,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 EXAMPLE = ROOT / ".env.example"
-TARGET = ROOT / ".env"
+TARGET = ROOT / ".env.local"
 
 
 def main() -> None:

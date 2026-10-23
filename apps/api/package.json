@@ -3,8 +3,8 @@
   "private": true,
   "version": "0.1.0",
   "scripts": {
-    "setup": "python3 scripts/init_env.py && docker compose --env-file .env -f docker-compose.dev.yml up -d && UV_CACHE_DIR=.uv-cache uv sync",
-    "dev": "python3 scripts/init_env.py && docker compose --env-file .env -f docker-compose.dev.yml up -d && UV_CACHE_DIR=.uv-cache uv run alembic -c alembic.ini upgrade head && UV_CACHE_DIR=.uv-cache uv run uvicorn expense_tracker_api.main:app --app-dir src --reload",
+    "setup": "python3 scripts/init_env.py && docker compose --env-file .env.local -f docker-compose.dev.yml up -d && UV_CACHE_DIR=.uv-cache uv sync",
+    "dev": "python3 scripts/init_env.py && docker compose --env-file .env.local -f docker-compose.dev.yml up -d && UV_CACHE_DIR=.uv-cache uv run alembic -c alembic.ini upgrade head && UV_CACHE_DIR=.uv-cache uv run uvicorn expense_tracker_api.main:app --app-dir src --reload",
     "migrate": "UV_CACHE_DIR=.uv-cache uv run alembic -c alembic.ini upgrade head",
     "seed": "PYTHONPATH=src UV_CACHE_DIR=.uv-cache uv run python scripts/seed_demo.py",
     "smoke": "PYTHONPATH=src UV_CACHE_DIR=.uv-cache uv run python scripts/smoke.py",
