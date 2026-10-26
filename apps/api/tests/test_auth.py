@@ -37,6 +37,13 @@ def test_duplicate_email_is_case_insensitive(client):
 
 def test_login_rejects_wrong_password(client):
     register(client)
+    success = client.post(
+        "/api/v1/auth/login", json={"email": "person@example.com", "password": PASSWORD}
+    )
+    assert success.status_code == 200
+    assert success.json()["access_token"]
+    assert success.json()["refresh_token"]
+    assert client.get("/api/v1/auth/me", headers=auth_headers(success.json())).status_code == 200
     response = client.post(
         "/api/v1/auth/login", json={"email": "person@example.com", "password": "wrong-password"}
     )

@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <rect width="1200" height="630" fill="#0B0A0D"/>
+  <path d="M72 90H1128" stroke="#E8DFCF" stroke-opacity=".1"/>
+  <text x="72" y="150" fill="#A89F8E" font-family="Arial,sans-serif" font-size="20" letter-spacing="4">TODO: APP NAME · FOR ANDROID</text>
+  <text x="72" y="310" fill="#E8DFCF" font-family="Georgia,serif" font-size="94">Know where</text>
+  <text x="72" y="410" fill="#E8DFCF" font-family="Georgia,serif" font-style="italic" font-size="94">your money goes.</text>
+  <text x="76" y="490" fill="#A89F8E" font-family="Arial,sans-serif" font-size="24">Local-first expense tracking. Add expenses in seconds, even offline.</text>
+  <rect x="900" y="165" width="210" height="360" rx="25" fill="#131116" stroke="#E8DFCF" stroke-opacity=".2"/>
+  <text x="930" y="220" fill="#A89F8E" font-family="Arial,sans-serif" font-size="14">AMOUNT</text>
+  <text x="930" y="290" fill="#E8DFCF" font-family="Georgia,serif" font-size="58">₹30</text>
+  <path d="M930 318H1080" stroke="#E8DFCF" stroke-opacity=".1"/>
+  <text x="930" y="360" fill="#A89F8E" font-family="Arial,sans-serif" font-size="14">CATEGORY</text>
+  <text x="930" y="400" fill="#E8DFCF" font-family="Arial,sans-serif" font-size="18">Food</text>
+  <text x="930" y="452" fill="#A89F8E" font-family="Arial,sans-serif" font-size="14">chai 30, auto 120</text>
+</svg>

@@ -15,6 +15,8 @@ from expense_tracker_api.core.config import (
     AI_PROVIDER,
     AI_TIMEOUT_SECONDS,
     ANTHROPIC_API_KEY,
+    MODEL_API_BASE_URL,
+    MODEL_API_KEY,
 )
 
 
@@ -125,10 +127,33 @@ class MockProvider(AIProvider):
                        "payments": {"me": amount} if amount else {}, "method": "equal",
                        "is_settled": False, "unmatched_names": unknown}
         elif endpoint == "ask":
-            q = data["question"].lower()
-            intent = "category_total" if "category" in q or "food" in q else "budget_remaining" if "budget" in q or "remaining" in q else "transaction_count" if "how many" in q else "spending_total" if "spend" in q or "total" in q else "unknown"
-            payload = {"intent": intent, "category_id": None, "period": None, "filters": {}}
-            confidence, reason = 0.8, "Mapped question to a local data query"
+            q = data["question"].strip().lower()
+            if data.get("mode") == "conversation":
+                history = data.get("history", [])
+                prior_user_turns = " ".join(
+                    str(turn.get("text", "")).lower() for turn in history
+                    if isinstance(turn, dict) and turn.get("role") == "user"
+                )
+                if re.match(r"^(hi|hello|hey)(\b|$)", q):
+                    response = "Hi! I can help with budgeting, saving, expense questions, and bill splits. What would you like to work on?"
+                elif re.match(r"^(thanks|thank you|thx)\b", q):
+                    response = "You’re welcome. If you like, we can work through a budget or a specific money question."
+                elif "subscription" in q and any(term in prior_user_turns for term in ("save", "saving", "budget")):
+                    response = "Subscriptions are a useful place to review: list the services paid for recently, mark which ones you used, and pause or cancel the low-value ones. If you ask how much you spent on subscriptions, I can check your recorded transactions."
+                elif re.match(r"^(what about|and|also|tell me more|why|how so)\b", q) and history:
+                    response = "Which part would you like to explore? I can explain the idea or help apply it to your budget."
+                elif any(term in q for term in ("save money", "saving", "budget", "spend less")):
+                    response = "A practical start is to set a realistic savings goal, review one month of spending, and choose a weekly limit for flexible costs. If you share your goal and constraints, I can help shape a plan."
+                elif any(term in q for term in ("invest", "investment", "tax advice", "legal advice")):
+                    response = "I can explain general financial concepts, but I’m not a licensed Chartered Accountant or investment adviser. For decisions based on your personal situation, please consult a qualified professional."
+                else:
+                    response = "I can help with personal finance basics, budgets, savings, bills, and expense tracking. Tell me what you’re trying to figure out."
+                payload = {"intent": "conversation", "category_id": None, "period": None, "filters": {}, "response": response}
+                confidence, reason = 1.0, "Deterministic mock conversation response"
+            else:
+                intent = "category_total" if "category" in q or "food" in q else "budget_remaining" if "budget" in q or "remaining" in q else "transaction_count" if "how many" in q else "spending_total" if "spend" in q or "total" in q else "unknown"
+                payload = {"intent": intent, "category_id": None, "period": None, "filters": {}, "response": None}
+                confidence, reason = 0.8, "Mapped question to a local data query"
         elif endpoint == "month-narrative":
             report = data["report"]
             total = report.get("totalSpentPaise", 0)
@@ -147,10 +172,25 @@ class AnthropicProvider(AIProvider):
     name = "anthropic"
 
     def __init__(self):
-        if not ANTHROPIC_API_KEY:
+        self._init_client(api_key=ANTHROPIC_API_KEY)
+
+    def _init_client(
+        self,
+        *,
+        api_key: str,
+        base_url: str | None = None,
+        use_bearer_auth: bool = False,
+    ) -> None:
+        if not api_key:
             raise RuntimeError("AI provider is not configured")
         from anthropic import Anthropic
-        self.client = Anthropic(api_key=ANTHROPIC_API_KEY, timeout=AI_TIMEOUT_SECONDS)
+
+        auth = {"auth_token": api_key} if use_bearer_auth else {"api_key": api_key}
+        self.client = Anthropic(
+            **auth,
+            base_url=base_url,
+            timeout=AI_TIMEOUT_SECONDS,
+        )
 
     def generate(self, endpoint: str, data: dict[str, Any], model: str) -> ProviderResult:
         started = time.monotonic()
@@ -183,12 +223,26 @@ class AnthropicProvider(AIProvider):
                               int((time.monotonic()-started)*1000))
 
 
+class MuseProvider(AnthropicProvider):
+    name = "muse"
+
+    def __init__(self):
+        self._init_client(
+            api_key=MODEL_API_KEY,
+            base_url=MODEL_API_BASE_URL,
+            use_bearer_auth=True,
+        )
+
+
 def get_provider() -> AIProvider:
-    if AI_PROVIDER.lower() == "mock" or not ANTHROPIC_API_KEY:
+    provider = AI_PROVIDER.lower()
+    if provider == "mock":
         return MockProvider()
-    if AI_PROVIDER.lower() != "anthropic":
-        raise RuntimeError("Unsupported AI_PROVIDER")
-    return AnthropicProvider()
+    if provider == "anthropic":
+        return AnthropicProvider() if ANTHROPIC_API_KEY else MockProvider()
+    if provider == "muse":
+        return MuseProvider() if MODEL_API_KEY else MockProvider()
+    raise RuntimeError("Unsupported AI_PROVIDER")
 
 
 def model_for(endpoint: str) -> str:

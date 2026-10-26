@@ -63,9 +63,11 @@ class DraftSplitIn(StrictInput):
 
 
 class AskIn(StrictInput):
+    mode: Literal["query", "conversation"] = "query"
     question: str = Field(min_length=1, max_length=2000)
     categories: list[dict[str, Any]] = Field(default_factory=list, max_length=200)
     periods: list[dict[str, Any]] = Field(default_factory=list, max_length=36)
+    history: list[dict[str, str]] = Field(default_factory=list, max_length=8)
 
 
 class NarrativeIn(StrictInput):
@@ -98,8 +100,9 @@ class QueryFilters(StrictOutput):
 
 
 class QueryDraft(StrictOutput):
-    intent: Literal["spending_total", "category_total", "budget_remaining", "transaction_count", "comparison", "unknown"]
+    intent: Literal["spending_total", "category_total", "budget_remaining", "transaction_count", "comparison", "unknown", "conversation"]
     category_id: uuid.UUID | None = None
     period: dict[str, Date] | None = None
     filters: QueryFilters = Field(default_factory=QueryFilters)
+    response: str | None = Field(default=None, max_length=1500)
 

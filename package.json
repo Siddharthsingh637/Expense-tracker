@@ -6,7 +6,7 @@
     "node": ">=22"
   },
   "scripts": {
-    "dev": "turbo run dev start --parallel",
+    "dev": "turbo run dev start",
     "setup": "pnpm --filter @expense-tracker/api setup",
     "api:setup": "pnpm --filter @expense-tracker/api setup",
     "build": "turbo run build",

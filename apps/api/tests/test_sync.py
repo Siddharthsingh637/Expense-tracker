@@ -99,6 +99,9 @@ def test_sync_is_scoped_by_authenticated_user(client):
                                       "updated_at":(datetime.now(UTC)+timedelta(seconds=1)).isoformat(),"data":{}}])
     visible = client.get("/api/v1/categories", headers=owner_headers).json()["items"]
     assert any(item["id"] == change["id"] for item in visible)
+    assert client.get(f"/api/v1/categories/{change['id']}", headers=stranger_headers).status_code == 404
+    assert client.patch(f"/api/v1/categories/{change['id']}", headers=stranger_headers,
+                        json={"name":"Stolen", "updated_at":(datetime.now(UTC)+timedelta(seconds=3)).isoformat()}).status_code == 404
 
 
 def test_all_synced_resources_are_tenant_scoped(client):

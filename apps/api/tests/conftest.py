@@ -7,9 +7,19 @@ from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
 
 from expense_tracker_api import models  # noqa: F401
+from expense_tracker_api.core.config import settings
 from expense_tracker_api.core.dependencies import get_db
 from expense_tracker_api.db.session import Base
 from expense_tracker_api.main import app
+
+
+@pytest.fixture(autouse=True)
+def configure_mock_ai(monkeypatch: pytest.MonkeyPatch, request: pytest.FixtureRequest):
+    if "live" not in request.keywords:
+        monkeypatch.setattr(settings, "ai_provider", "mock")
+        monkeypatch.setattr("expense_tracker_api.core.config.AI_PROVIDER", "mock")
+        monkeypatch.setattr("expense_tracker_api.ai.providers.AI_PROVIDER", "mock")
+        monkeypatch.setenv("AI_PROVIDER", "mock")
 
 
 @pytest.fixture

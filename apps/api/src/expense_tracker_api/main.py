@@ -4,12 +4,13 @@ import uuid
 
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.utils import get_openapi
 from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from expense_tracker_api.api.v1.router import router as v1_router
-from expense_tracker_api.core.config import MAX_SYNC_REQUEST_BYTES
+from expense_tracker_api.core.config import CORS_ORIGINS, MAX_SYNC_REQUEST_BYTES
 
 app = FastAPI(
     title="Paisa API",
@@ -25,6 +26,13 @@ app = FastAPI(
         {"name": "attachments", "description": "Private receipt image storage."},
         {"name": "ai", "description": "AI drafts; the client confirms and computes."},
     ],
+)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=CORS_ORIGINS,
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"],
+    allow_headers=["Authorization", "Content-Type", "X-Checksum-SHA256", "X-Transaction-ID"],
 )
 
 @app.middleware("http")

@@ -1,3 +1,4 @@
+import io
 import os
 
 import pytest
@@ -27,6 +28,29 @@ def test_mock_parse_entry_and_category_drafts(client):
     assert suggestion.status_code == 200
     assert suggestion.json()["type"] == "category"
     assert suggestion.json()["payload"]["category_id"] == next(c["id"] for c in categories if c["name"] == "Food")
+
+
+def test_receipt_parse_endpoint_accepts_sanitized_image_and_returns_structured_draft(client, monkeypatch):
+    from PIL import Image
+
+    from expense_tracker_api.ai.providers import ProviderResult
+    headers = _headers(client)
+    image = io.BytesIO()
+    Image.new("RGB", (12, 8), color=(220, 80, 30)).save(image, format="JPEG")
+
+    class Provider:
+        def generate(self, endpoint, data, model):
+            assert endpoint == "parse-receipt"
+            assert data["mime_type"] == "image/jpeg"
+            assert data["image_base64"]
+            return ProviderResult({"merchant":"Tea Shop", "total_paise":2500, "date":"2026-10-23", "items":[]}, .9, "mock", "mock", model)
+
+    monkeypatch.setattr(ai_api, "get_provider", lambda: Provider())
+    response = client.post("/api/v1/ai/parse-receipt", headers=headers,
+                           files={"file":("receipt.jpg", image.getvalue(), "image/jpeg")})
+    assert response.status_code == 200, response.text
+    assert response.json()["payload"]["merchant"] == "Tea Shop"
+    assert response.json()["payload"]["total_paise"] == 2500
 
 
 def test_mock_budget_is_within_total_and_split_flags_unmatched_names(client):
@@ -63,6 +87,22 @@ def test_ask_returns_only_query_and_narrative_checks_report_numbers(client):
     assert "₹123.45" in narrative.json()["payload"]["text"]
     assert len(narrative.json()["payload"]["text"].split(". ")) >= 2
     assert len(narrative.json()["payload"]["suggestions"]) <= 3
+
+
+def test_ask_conversation_mode_returns_natural_mock_response(client):
+    headers = _headers(client)
+    response = client.post("/api/v1/ai/ask", headers=headers, json={
+        "mode":"conversation", "question":"Hi", "categories":[], "periods":[], "history":[],
+    })
+    assert response.status_code == 200, response.text
+    assert response.json()["payload"]["intent"] == "conversation"
+    assert "help" in response.json()["payload"]["response"].lower()
+    followup = client.post("/api/v1/ai/ask", headers=headers, json={
+        "mode":"conversation", "question":"What about subscriptions?", "categories":[], "periods":[],
+        "history":[{"role":"user", "text":"How can I save money?"}],
+    })
+    assert followup.status_code == 200
+    assert "subscriptions" in followup.json()["payload"]["response"].lower()
 
 
 def test_ai_toggle_off_returns_ai_unavailable(client, db_session):
@@ -182,8 +222,11 @@ def test_narrative_with_unprovided_number_uses_safe_template(client, monkeypatch
 
 
 @pytest.mark.live
-@pytest.mark.skipif(not os.getenv("ANTHROPIC_API_KEY"), reason="ANTHROPIC_API_KEY is not configured")
-def test_live_anthropic_parse_entry(client):
+@pytest.mark.skipif(
+    not (os.getenv("MODEL_API_KEY") or os.getenv("ANTHROPIC_API_KEY")),
+    reason="No live AI provider key is configured",
+)
+def test_live_configured_provider_parse_entry(client):
     tokens = register(client, "live-ai@example.com")
     response = client.post("/api/v1/ai/parse-entry", headers=auth_headers(tokens), json={
         "text":"paid ₹42 for tea", "context":{"timezone":"Asia/Kolkata"}

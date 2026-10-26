@@ -19,7 +19,11 @@ def main() -> None:
         "email":f"smoke-{suffix}@paisa.local","password":"paisa-smoke-password-123"
     })
     assert registered.status_code == 201, registered.text
-    tokens = registered.json()
+    login = client.post("/api/v1/auth/login", json={
+        "email":f"smoke-{suffix}@paisa.local","password":"paisa-smoke-password-123"
+    })
+    assert login.status_code == 200, login.text
+    tokens = login.json()
     headers = {"Authorization":f"Bearer {tokens['access_token']}"}
     assert client.get("/api/v1/auth/me", headers=headers).status_code == 200
     cats = client.get("/api/v1/categories", headers=headers).json()["items"]
