@@ -13,7 +13,7 @@ from expense_tracker_api.api.v1.router import router as v1_router
 from expense_tracker_api.core.config import CORS_ORIGINS, MAX_SYNC_REQUEST_BYTES
 
 app = FastAPI(
-    title="Paisa API",
+    title="Financer API",
     version="1.0.0",
     description="Expense Tracker backend. All amounts are integer paise; dates are ISO calendar dates.",
     openapi_tags=[

@@ -36,7 +36,7 @@ import {
   Divider,
   DraftCard,
 } from '@/components';
-import { usePaisaStore } from '@/data/local/store';
+import { useFinancerStore } from '@/data/local/store';
 import { photoSource } from '@/data/remote/photo-source';
 import { aiService } from '@/ai';
 import { useToastStore } from '@/lib/toast-store';
@@ -51,12 +51,12 @@ import { PaymentMode, TransactionProvenance } from '@/engine/types';
 import { PAYMENT_MODE_LABELS } from '@/lib/constants';
 
 export default function QuickAddScreen() {
-  const categories = usePaisaStore((s) => s.categories);
-  const transactions = usePaisaStore((s) => s.transactions);
-  const lastUsedPaymentMode = usePaisaStore((s) => s.lastUsedPaymentMode);
-  const aiEnabled = usePaisaStore((s) => s.aiEnabled);
-  const addTransaction = usePaisaStore((s) => s.addTransaction);
-  const deleteTransaction = usePaisaStore((s) => s.deleteTransaction);
+  const categories = useFinancerStore((s) => s.categories);
+  const transactions = useFinancerStore((s) => s.transactions);
+  const lastUsedPaymentMode = useFinancerStore((s) => s.lastUsedPaymentMode);
+  const aiEnabled = useFinancerStore((s) => s.aiEnabled);
+  const addTransaction = useFinancerStore((s) => s.addTransaction);
+  const deleteTransaction = useFinancerStore((s) => s.deleteTransaction);
   const showToast = useToastStore((s) => s.showToast);
 
   // Form State

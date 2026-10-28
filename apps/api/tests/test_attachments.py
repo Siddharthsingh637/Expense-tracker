@@ -16,7 +16,7 @@ def _jpeg(with_exif: bool = False) -> bytes:
     output = io.BytesIO()
     if with_exif:
         exif = Image.Exif()
-        exif[315] = "Paisa test receipt"
+        exif[315] = "Financer test receipt"
         exif[34853] = {1: "N", 2: (IFDRational(12,1), IFDRational(34,1), IFDRational(56,1)),
                         3: "E", 4: (IFDRational(77,1), IFDRational(12,1), IFDRational(1,1))}
         image.save(output, format="JPEG", exif=exif)

@@ -9,7 +9,7 @@ jest.mock('@react-native-async-storage/async-storage', () => ({
   },
 }));
 
-import { activateGuestStore, activateStoreForUser, usePaisaStore } from '../store';
+import { activateGuestStore, activateStoreForUser, useFinancerStore } from '../store';
 
 describe('account-scoped local data', () => {
   beforeEach(() => {
@@ -20,23 +20,34 @@ describe('account-scoped local data', () => {
     const guestTxn = { id: 'txn-guest', place: 'Guest record' } as never;
     const firstTxn = { id: 'txn-first', place: 'Account A record' } as never;
     const secondTxn = { id: 'txn-second', place: 'Account B record' } as never;
-    usePaisaStore.setState({ transactions: [guestTxn] });
+    useFinancerStore.setState({ transactions: [guestTxn] });
 
     await activateStoreForUser('account-a');
-    expect(usePaisaStore.getState().transactions).toEqual([]);
-    usePaisaStore.setState({ transactions: [firstTxn] });
+    expect(useFinancerStore.getState().transactions).toEqual([]);
+    useFinancerStore.setState({ transactions: [firstTxn] });
 
     await activateGuestStore();
-    expect(usePaisaStore.getState().transactions).toEqual([guestTxn]);
+    expect(useFinancerStore.getState().transactions).toEqual([guestTxn]);
     await activateStoreForUser('account-b');
-    expect(usePaisaStore.getState().transactions).toEqual([]);
-    usePaisaStore.setState({ transactions: [secondTxn] });
+    expect(useFinancerStore.getState().transactions).toEqual([]);
+    useFinancerStore.setState({ transactions: [secondTxn] });
 
     await activateGuestStore();
-    expect(usePaisaStore.getState().transactions).toEqual([guestTxn]);
+    expect(useFinancerStore.getState().transactions).toEqual([guestTxn]);
     await activateStoreForUser('account-b');
-    expect(usePaisaStore.getState().transactions).toEqual([secondTxn]);
+    expect(useFinancerStore.getState().transactions).toEqual([secondTxn]);
     await activateStoreForUser('account-a');
-    expect(usePaisaStore.getState().transactions).toEqual([firstTxn]);
+    expect(useFinancerStore.getState().transactions).toEqual([firstTxn]);
+  });
+
+  it('preserves guest data and onboarding state across activations', async () => {
+    await activateGuestStore();
+    const guestTxn = { id: 'txn-guest-persist', place: 'Cafe Coffee Day' } as never;
+    useFinancerStore.setState({ transactions: [guestTxn], isOnboarded: true });
+
+    // Reactivate guest store
+    await activateGuestStore();
+    expect(useFinancerStore.getState().transactions).toEqual([guestTxn]);
+    expect(useFinancerStore.getState().isOnboarded).toBe(true);
   });
 });

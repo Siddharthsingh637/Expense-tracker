@@ -37,7 +37,7 @@ import {
   EmptyState,
   DraftCard,
 } from '@/components';
-import { usePaisaStore } from '@/data/local/store';
+import { useFinancerStore } from '@/data/local/store';
 import { useToastStore } from '@/lib/toast-store';
 import { aiService } from '@/ai';
 import {
@@ -58,18 +58,18 @@ export default function BudgetScreen() {
   const { width: screenWidth } = useWindowDimensions();
   const canvasSize = Math.min(screenWidth - Spacing.base * 2, 380);
 
-  const currentMonth = usePaisaStore((s) => s.currentMonth);
-  const budgetStartDay = usePaisaStore((s) => s.budgetStartDay);
-  const monthBudgets = usePaisaStore((s) => s.monthBudgets);
-  const allocations = usePaisaStore((s) => s.budgetAllocations);
-  const transactions = usePaisaStore((s) => s.transactions);
-  const categories = usePaisaStore((s) => s.categories);
-  const setMonthBudget = usePaisaStore((s) => s.setMonthBudget);
-  const setBudgetAllocation = usePaisaStore((s) => s.setBudgetAllocation);
-  const removeBudgetAllocation = usePaisaStore((s) => s.removeBudgetAllocation);
-  const addCategory = usePaisaStore((s) => s.addCategory);
-  const updateCategory = usePaisaStore((s) => s.updateCategory);
-  const removeCategory = usePaisaStore((s) => s.removeCategory);
+  const currentMonth = useFinancerStore((s) => s.currentMonth);
+  const budgetStartDay = useFinancerStore((s) => s.budgetStartDay);
+  const monthBudgets = useFinancerStore((s) => s.monthBudgets);
+  const allocations = useFinancerStore((s) => s.budgetAllocations);
+  const transactions = useFinancerStore((s) => s.transactions);
+  const categories = useFinancerStore((s) => s.categories);
+  const setMonthBudget = useFinancerStore((s) => s.setMonthBudget);
+  const setBudgetAllocation = useFinancerStore((s) => s.setBudgetAllocation);
+  const removeBudgetAllocation = useFinancerStore((s) => s.removeBudgetAllocation);
+  const addCategory = useFinancerStore((s) => s.addCategory);
+  const updateCategory = useFinancerStore((s) => s.updateCategory);
+  const removeCategory = useFinancerStore((s) => s.removeCategory);
   const showToast = useToastStore((s) => s.showToast);
 
   // Active view modes: 'live' vs 'setup'

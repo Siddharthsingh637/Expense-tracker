@@ -1,4 +1,4 @@
-# Paisa API design v2 — implemented contract
+# Financer API design v2 — implemented contract
 
 Status: implemented in `apps/api`; the manual endpoint reference is in `docs/api-endpoints.md`. This document records the approved mobile mapping and design risks for future changes.
 

@@ -43,7 +43,7 @@ The Expo lint command requires ESLint and `eslint-config-expo` to be installed i
 
 ## Run API and mobile locally without Docker (macOS/Homebrew)
 
-Install and start PostgreSQL once, then create the local Paisa role and database. The API's checked-in local defaults use port `54329`:
+Install and start PostgreSQL once, then create the local development role and database. The API's checked-in local defaults use port `54329`:
 
 ```sh
 brew install postgresql@17

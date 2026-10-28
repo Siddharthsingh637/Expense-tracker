@@ -5,18 +5,18 @@ import { ChevronLeft, ArrowRight, CheckCircle2, Circle } from 'lucide-react-nati
 
 import { Colors, Spacing, Radius, TouchTarget } from '@/theme';
 import { Text, AmountText, Avatar, Divider, Button } from '@/components';
-import { usePaisaStore } from '@/data/local/store';
+import { useFinancerStore } from '@/data/local/store';
 import { computeBalances, simplifyDebts } from '@/engine/splits';
 import { formatMoney, formatDate } from '@/lib/format';
 
 export default function SplitDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const groupBills = usePaisaStore((s) => s.groupBills);
-  const people = usePaisaStore((s) => s.people);
-  const billSettlements = usePaisaStore((s) => s.billSettlements);
-  const addSettlement = usePaisaStore((s) => s.addSettlement);
-  const updateSettlement = usePaisaStore((s) => s.updateSettlement);
-  const updateGroupBill = usePaisaStore((s) => s.updateGroupBill);
+  const groupBills = useFinancerStore((s) => s.groupBills);
+  const people = useFinancerStore((s) => s.people);
+  const billSettlements = useFinancerStore((s) => s.billSettlements);
+  const addSettlement = useFinancerStore((s) => s.addSettlement);
+  const updateSettlement = useFinancerStore((s) => s.updateSettlement);
+  const updateGroupBill = useFinancerStore((s) => s.updateGroupBill);
 
   const bill = groupBills.find((b) => b.id === id);
 
@@ -68,7 +68,7 @@ export default function SplitDetailScreen() {
     }
 
     // Check if all transfers are now settled
-    const updatedSettlements = usePaisaStore.getState().billSettlements;
+    const updatedSettlements = useFinancerStore.getState().billSettlements;
     const allSettled = transfers.every((t) => {
       const s = updatedSettlements.find(
         (rec) => rec.groupBillId === bill!.id && rec.fromPersonId === t.fromPersonId && rec.toPersonId === t.toPersonId

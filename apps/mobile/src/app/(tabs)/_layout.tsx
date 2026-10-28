@@ -15,7 +15,7 @@ import { useWindowDimensions } from 'react-native';
 
 import { Colors, Spacing, ZIndex, Radius, TouchTarget, Fonts, FontSize, Duration } from '@/theme';
 import { Text } from '@/components';
-import { usePaisaStore } from '@/data/local/store';
+import { useFinancerStore } from '@/data/local/store';
 
 // ---------------------------------------------------------------------------
 // Tab bar icon helper
@@ -55,10 +55,10 @@ const TAB_BAR_HEIGHT = 64; // approx
 function FAB() {
   const { width: SCREEN_W, height: SCREEN_H } = useWindowDimensions();
   const insets = useSafeAreaInsets();
-  const fabPosition = usePaisaStore((s) => s.fabPosition);
-  const fabY = usePaisaStore((s) => s.fabY);
-  const setFabPosition = usePaisaStore((s) => s.setFabPosition);
-  const setFabY = usePaisaStore((s) => s.setFabY);
+  const fabPosition = useFinancerStore((s) => s.fabPosition);
+  const fabY = useFinancerStore((s) => s.fabY);
+  const setFabPosition = useFinancerStore((s) => s.setFabPosition);
+  const setFabY = useFinancerStore((s) => s.setFabY);
 
   // Initial X based on stored edge
   const initialX =
@@ -150,7 +150,7 @@ function FAB() {
 export default function TabsLayout() {
   const insets = useSafeAreaInsets();
   const pathname = usePathname();
-  const fabPosition = usePaisaStore((s) => s.fabPosition);
+  const fabPosition = useFinancerStore((s) => s.fabPosition);
   const isTabScreen = ['/', '/budget', '/splits', '/insights'].includes(pathname);
 
   return (

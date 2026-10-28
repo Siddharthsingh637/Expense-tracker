@@ -1,5 +1,5 @@
 import { apiRequest, hasSession } from '@/data/remote/api';
-import { usePaisaStore } from '@/data/local/store';
+import { useFinancerStore } from '@/data/local/store';
 import { AIDraft, BudgetAllocation, GroupBill, MonthReport, Transaction } from '@/engine/types';
 import { MockAIService } from './mock';
 import type { AIService, QueryContext } from './types';
@@ -34,22 +34,22 @@ export class RemoteAIService implements AIService {
     return this.withFallback<AIDraft<Partial<Transaction>>>(async () => {
       const result = await this.ask<{amount_paise?: number; place: string; note: string; payment_mode?: Transaction['paymentMode']; local_date?: string; local_time?: string; category_id?: string}>('parse-entry', {
         text,
-        context: { timezone: Intl.DateTimeFormat().resolvedOptions().timeZone, now: new Date().toISOString(), recent_places: usePaisaStore.getState().transactions.slice(0, 10).map((txn) => txn.place), categories: usePaisaStore.getState().categories.map(({id,name}) => ({id,name})) },
+        context: { timezone: Intl.DateTimeFormat().resolvedOptions().timeZone, now: new Date().toISOString(), recent_places: useFinancerStore.getState().transactions.slice(0, 10).map((txn) => txn.place), categories: useFinancerStore.getState().categories.map(({id,name}) => ({id,name})) },
       });
-      const category = usePaisaStore.getState().categories.find((item) => item.id === result.payload.category_id);
+      const category = useFinancerStore.getState().categories.find((item) => item.id === result.payload.category_id);
       return { data: { amount: result.payload.amount_paise, place: result.payload.place, note: result.payload.note, paymentMode: result.payload.payment_mode, date: result.payload.local_date, time: result.payload.local_time, categoryId: category?.id }, confidence: result.confidence, reason: result.reason, latencyMs: result.latency_ms };
     }, () => this.fallback.parseEntry(text));
   }
   async suggestCategory(place: string, amount: number) {
     return this.withFallback<AIDraft<string>>(async () => {
-      const categories = usePaisaStore.getState().categories;
+      const categories = useFinancerStore.getState().categories;
       const result = await this.ask<{category_id: string | null}>('suggest-category', { place, categories: categories.map(({id,name}) => ({id,name})) });
       return { data: categories.find((item) => item.id === result.payload.category_id)?.name ?? 'Other', confidence: result.confidence, reason: result.reason, latencyMs: result.latency_ms };
     }, () => this.fallback.suggestCategory(place, amount));
   }
   async proposeBudget(history: Transaction[], totalPaise: number) {
     return this.withFallback(async () => {
-      const state = usePaisaStore.getState();
+      const state = useFinancerStore.getState();
       const result = await this.ask<{allocations: Array<{category_id: string; amount_paise: number; reason: string}>}>('propose-budget', {
         total_paise: totalPaise, start_day: state.budgetStartDay,
         history: history.slice(-500).map(({amount,categoryId,date,place}) => ({amount_paise: amount, category_id: categoryId, transaction_date: date, place})),
@@ -60,7 +60,7 @@ export class RemoteAIService implements AIService {
   }
   async draftSplit(text: string) {
     return this.withFallback<AIDraft<Partial<GroupBill> & { personNames?: string[] }>>(async () => {
-      const state = usePaisaStore.getState();
+      const state = useFinancerStore.getState();
       const result = await this.ask<{title: string; date: string; person_ids: string[]; payments: Record<string, number>; method: GroupBill['method']; is_settled: boolean}>('draft-split', {
         text, people: state.people.map(({id,name}) => ({id,name})), categories: state.categories.map(({id,name}) => ({id,name})),
       });
@@ -69,7 +69,7 @@ export class RemoteAIService implements AIService {
   }
   async answerQuestion(question: string, ctx: QueryContext) {
     return this.withFallback(async () => {
-      const state = usePaisaStore.getState();
+      const state = useFinancerStore.getState();
       const categories = state.categories.map(({id,name}) => ({id,name}));
       const [year, month] = ctx.currentMonth.split('-').map(Number);
       const monthEnd = new Date(year, month, 0).getDate();
@@ -99,7 +99,7 @@ export class RemoteAIService implements AIService {
   }
   async monthNarrative(report: MonthReport) {
     return this.withFallback(async () => {
-      const categories = usePaisaStore.getState().categories.map(({id,name}) => ({id,name}));
+      const categories = useFinancerStore.getState().categories.map(({id,name}) => ({id,name}));
       const result = await this.ask<{text: string}>('month-narrative', { report, categories });
       return { data: result.payload.text, confidence: result.confidence, reason: result.reason, latencyMs: result.latency_ms };
     }, () => this.fallback.monthNarrative(report));

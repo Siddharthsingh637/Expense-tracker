@@ -1,4 +1,4 @@
-# Paisa API endpoint guide
+# Financer API endpoint guide
 
 Base URL: `http://127.0.0.1:8000/api/v1`. Except registration/login/refresh/health, routes require `Authorization: Bearer <access_token>`. JSON errors follow `{ "error": { "code", "message", "details", "request_id" } }`.
 

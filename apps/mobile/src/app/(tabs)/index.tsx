@@ -8,7 +8,7 @@ import {
 
 import { Colors, Spacing, Radius, FontSize, TouchTarget } from '@/theme';
 import { Text, AmountText, BudgetBar, Divider, EmptyState, Chip } from '@/components';
-import { usePaisaStore } from '@/data/local/store';
+import { useFinancerStore } from '@/data/local/store';
 import { budgetTotals, pace, parseBudgetPeriod } from '@/engine/budget';
 import { computeBalances } from '@/engine/splits';
 import { formatMoney, formatDate, formatTime, toISODate } from '@/lib/format';
@@ -28,14 +28,14 @@ function SectionHeader({ title, action }: { title: string; action?: { label: str
 }
 
 export default function HomeScreen() {
-  const transactions = usePaisaStore((s) => s.transactions);
-  const monthBudgets = usePaisaStore((s) => s.monthBudgets);
-  const allocations = usePaisaStore((s) => s.budgetAllocations);
-  const currentMonth = usePaisaStore((s) => s.currentMonth);
-  const budgetStartDay = usePaisaStore((s) => s.budgetStartDay);
-  const categories = usePaisaStore((s) => s.categories);
-  const groupBills = usePaisaStore((s) => s.groupBills);
-  const people = usePaisaStore((s) => s.people);
+  const transactions = useFinancerStore((s) => s.transactions);
+  const monthBudgets = useFinancerStore((s) => s.monthBudgets);
+  const allocations = useFinancerStore((s) => s.budgetAllocations);
+  const currentMonth = useFinancerStore((s) => s.currentMonth);
+  const budgetStartDay = useFinancerStore((s) => s.budgetStartDay);
+  const categories = useFinancerStore((s) => s.categories);
+  const groupBills = useFinancerStore((s) => s.groupBills);
+  const people = useFinancerStore((s) => s.people);
 
   const today = new Date();
   const budget = monthBudgets.find((b) => b.month === currentMonth);

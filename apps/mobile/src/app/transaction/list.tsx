@@ -22,7 +22,7 @@ import {
 
 import { Colors, Spacing, Radius, TouchTarget, Fonts, FontSize } from '@/theme';
 import { Text, EmptyState, Divider, Chip, Button } from '@/components';
-import { usePaisaStore } from '@/data/local/store';
+import { useFinancerStore } from '@/data/local/store';
 import { useToastStore } from '@/lib/toast-store';
 import { formatMoney, formatDate, toYYYYMM } from '@/lib/format';
 import { Transaction, PaymentMode } from '@/engine/types';
@@ -31,11 +31,11 @@ import { PAYMENT_MODE_LABELS } from '@/lib/constants';
 type DateFilter = 'all' | 'this_month' | 'last_30_days';
 
 export default function TransactionListScreen() {
-  const transactions = usePaisaStore((s) => s.transactions);
-  const categories = usePaisaStore((s) => s.categories);
-  const currentMonth = usePaisaStore((s) => s.currentMonth);
-  const deleteTransaction = usePaisaStore((s) => s.deleteTransaction);
-  const restoreTransaction = usePaisaStore((s) => s.restoreTransaction);
+  const transactions = useFinancerStore((s) => s.transactions);
+  const categories = useFinancerStore((s) => s.categories);
+  const currentMonth = useFinancerStore((s) => s.currentMonth);
+  const deleteTransaction = useFinancerStore((s) => s.deleteTransaction);
+  const restoreTransaction = useFinancerStore((s) => s.restoreTransaction);
   const showToast = useToastStore((s) => s.showToast);
 
   // Filters State

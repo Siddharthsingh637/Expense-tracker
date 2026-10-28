@@ -1,4 +1,4 @@
-# Welcome to your Expo app 👋
+# Financer mobile app
 
 This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
 
@@ -18,16 +18,16 @@ not performed.
 
 ## Get started
 
-1. Install dependencies
+1. Install the monorepo dependencies from the repository root
 
    ```bash
-   npm install
+   pnpm install
    ```
 
-2. Start the app
+2. Start the app from the repository root
 
    ```bash
-   npx expo start
+   pnpm --filter mobile start
    ```
 
 In the output, you'll find options to open the app in a
@@ -36,6 +36,21 @@ In the output, you'll find options to open the app in a
 - [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
 - [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
 - [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+
+## EAS Build
+
+EAS configuration belongs to this app in `apps/mobile/eas.json`. Run build commands
+from the mobile app directory so EAS uses this app's configuration and project ID:
+
+```bash
+cd apps/mobile
+eas build --platform android --profile preview
+eas build --platform android --profile production
+```
+
+The preview profile produces an installable APK. Production uses the default Android
+App Bundle format for store distribution. The development profile requires the
+`expo-dev-client` package and produces an internal development build.
 
 You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
 

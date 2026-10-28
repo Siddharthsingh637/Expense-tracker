@@ -31,7 +31,7 @@ import {
 
 import { Colors, Spacing, Radius, TouchTarget } from '@/theme';
 import { Text, Divider, Button } from '@/components';
-import { activateGuestStore, usePaisaStore } from '@/data/local/store';
+import { activateGuestStore, useFinancerStore } from '@/data/local/store';
 import { currentUser, signOut, hasSession } from '@/data/remote/api';
 import { startSyncService, stopSyncService, syncNow } from '@/data/remote/sync';
 import { useSyncStatus } from '@/lib/sync-status';
@@ -100,18 +100,18 @@ function ToggleRow({
 }
 
 export default function SettingsScreen() {
-  const aiEnabled = usePaisaStore((s) => s.aiEnabled);
-  const aiFeatureToggles = usePaisaStore((s) => s.aiFeatureToggles);
-  const budgetStartDay = usePaisaStore((s) => s.budgetStartDay);
-  const setAIEnabled = usePaisaStore((s) => s.setAIEnabled);
-  const setAIFeatureToggle = usePaisaStore((s) => s.setAIFeatureToggle);
-  const setBudgetStartDay = usePaisaStore((s) => s.setBudgetStartDay);
-  const categories = usePaisaStore((s) => s.categories);
-  const addCategory = usePaisaStore((s) => s.addCategory);
-  const removeCategory = usePaisaStore((s) => s.removeCategory);
-  const transactions = usePaisaStore((s) => s.transactions);
-  const loadDemoData = usePaisaStore((s) => s.loadDemoData);
-  const resetAll = usePaisaStore((s) => s.resetAll);
+  const aiEnabled = useFinancerStore((s) => s.aiEnabled);
+  const aiFeatureToggles = useFinancerStore((s) => s.aiFeatureToggles);
+  const budgetStartDay = useFinancerStore((s) => s.budgetStartDay);
+  const setAIEnabled = useFinancerStore((s) => s.setAIEnabled);
+  const setAIFeatureToggle = useFinancerStore((s) => s.setAIFeatureToggle);
+  const setBudgetStartDay = useFinancerStore((s) => s.setBudgetStartDay);
+  const categories = useFinancerStore((s) => s.categories);
+  const addCategory = useFinancerStore((s) => s.addCategory);
+  const removeCategory = useFinancerStore((s) => s.removeCategory);
+  const transactions = useFinancerStore((s) => s.transactions);
+  const loadDemoData = useFinancerStore((s) => s.loadDemoData);
+  const resetAll = useFinancerStore((s) => s.resetAll);
 
   const syncStatus = useSyncStatus((s) => s.status);
   const syncMessage = useSyncStatus((s) => s.message);
@@ -177,7 +177,7 @@ export default function SettingsScreen() {
 
     try {
       await Share.share({
-        title: 'paisa_transactions.csv',
+        title: 'financer_transactions.csv',
         message: csvContent,
       });
       showToast({ message: `Exported ${transactions.length} transactions as CSV` });
@@ -414,7 +414,7 @@ export default function SettingsScreen() {
         </View>
 
         <Text variant="caption" color={Colors.muted} center style={styles.version}>
-          Paisa v1.0.0 · Data stored locally on device
+          Financer v1.0.0 · Data stored locally on device
         </Text>
       </ScrollView>
 

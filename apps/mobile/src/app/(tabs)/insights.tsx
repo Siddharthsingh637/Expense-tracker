@@ -33,7 +33,7 @@ import {
 
 import { Colors, Spacing, Radius, TouchTarget } from '@/theme';
 import { Text, AmountText, Divider, EmptyState, Button } from '@/components';
-import { usePaisaStore } from '@/data/local/store';
+import { useFinancerStore } from '@/data/local/store';
 import { monthReport } from '@/engine/report';
 import { parseBudgetPeriod, budgetTotals } from '@/engine/budget';
 import { formatMoney, toYYYYMM } from '@/lib/format';
@@ -43,20 +43,20 @@ import DailySpendBarChart from '@/features/insights/DailySpendBarChart';
 import CategoryDonutChart from '@/features/insights/CategoryDonutChart';
 
 export default function InsightsScreen() {
-  const currentMonth = usePaisaStore((s) => s.currentMonth);
+  const currentMonth = useFinancerStore((s) => s.currentMonth);
   const [viewMonth, setViewMonth] = useState(currentMonth);
 
-  const transactions = usePaisaStore((s) => s.transactions);
-  const monthBudgets = usePaisaStore((s) => s.monthBudgets);
-  const allocations = usePaisaStore((s) => s.budgetAllocations);
-  const budgetStartDay = usePaisaStore((s) => s.budgetStartDay);
-  const categories = usePaisaStore((s) => s.categories);
-  const groupBills = usePaisaStore((s) => s.groupBills);
-  const aiEnabled = usePaisaStore((s) => s.aiEnabled);
+  const transactions = useFinancerStore((s) => s.transactions);
+  const monthBudgets = useFinancerStore((s) => s.monthBudgets);
+  const allocations = useFinancerStore((s) => s.budgetAllocations);
+  const budgetStartDay = useFinancerStore((s) => s.budgetStartDay);
+  const categories = useFinancerStore((s) => s.categories);
+  const groupBills = useFinancerStore((s) => s.groupBills);
+  const aiEnabled = useFinancerStore((s) => s.aiEnabled);
 
   // Store actions
-  const setCurrentMonth = usePaisaStore((s) => s.setCurrentMonth);
-  const setMonthBudget = usePaisaStore((s) => s.setMonthBudget);
+  const setCurrentMonth = useFinancerStore((s) => s.setCurrentMonth);
+  const setMonthBudget = useFinancerStore((s) => s.setMonthBudget);
   const showToast = useToastStore((s) => s.showToast);
 
   // Month Period & Transactions

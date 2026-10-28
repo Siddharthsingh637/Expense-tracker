@@ -1,5 +1,5 @@
 /**
- * Core domain types for the Paisa expense tracker.
+ * Core domain types for the Financer expense tracker.
  * All amounts are stored as integer paise (₹1 = 100 paise) — never floats.
  * This file has zero React imports; it is safe to import in engine tests.
  */

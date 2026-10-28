@@ -31,7 +31,7 @@ import {
   EmptyState,
   ProgressRing,
 } from '@/components';
-import { usePaisaStore } from '@/data/local/store';
+import { useFinancerStore } from '@/data/local/store';
 import { useToastStore } from '@/lib/toast-store';
 import { categorySpend, parseBudgetPeriod, pace } from '@/engine/budget';
 import {
@@ -46,14 +46,14 @@ import { PAYMENT_MODE_LABELS } from '@/lib/constants';
 
 export default function CategoryDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const categories = usePaisaStore((s) => s.categories);
-  const transactions = usePaisaStore((s) => s.transactions);
-  const allocations = usePaisaStore((s) => s.budgetAllocations);
-  const monthBudgets = usePaisaStore((s) => s.monthBudgets);
-  const currentMonth = usePaisaStore((s) => s.currentMonth);
-  const budgetStartDay = usePaisaStore((s) => s.budgetStartDay);
-  const setBudgetAllocation = usePaisaStore((s) => s.setBudgetAllocation);
-  const addTransaction = usePaisaStore((s) => s.addTransaction);
+  const categories = useFinancerStore((s) => s.categories);
+  const transactions = useFinancerStore((s) => s.transactions);
+  const allocations = useFinancerStore((s) => s.budgetAllocations);
+  const monthBudgets = useFinancerStore((s) => s.monthBudgets);
+  const currentMonth = useFinancerStore((s) => s.currentMonth);
+  const budgetStartDay = useFinancerStore((s) => s.budgetStartDay);
+  const setBudgetAllocation = useFinancerStore((s) => s.setBudgetAllocation);
+  const addTransaction = useFinancerStore((s) => s.addTransaction);
   const showToast = useToastStore((s) => s.showToast);
 
   const cat = categories.find((c) => c.id === id);

@@ -6,5 +6,5 @@ export type {
   TxnFilter,
 } from './types';
 export { repositories } from './local/repository';
-export { usePaisaStore } from './local/store';
-export type { PaisaStore } from './local/store';
+export { useFinancerStore } from './local/store';
+export type { FinancerStore } from './local/store';

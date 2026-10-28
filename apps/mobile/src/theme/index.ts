@@ -1,5 +1,5 @@
 /**
- * Paisa design tokens — single source of truth.
+ * Financer design tokens — single source of truth.
  * Dark-only. Never use inline colour strings; always import from here.
  */
 

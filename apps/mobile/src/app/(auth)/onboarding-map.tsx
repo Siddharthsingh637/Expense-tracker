@@ -14,20 +14,20 @@ import { Check, X, Plus, Sparkles, RotateCcw, Trash2 } from 'lucide-react-native
 
 import { Colors, Spacing, Radius, FontSize, TouchTarget, Fonts } from '@/theme';
 import { Text, Button, AmountText, Divider, Chip } from '@/components';
-import { usePaisaStore } from '@/data/local/store';
+import { useFinancerStore } from '@/data/local/store';
 import { formatMoney, rupeesToPaise } from '@/lib/format';
 import { allocate } from '@/engine/allocate';
 import { BUDGET_TEMPLATES } from '@/lib/constants';
 
 export default function OnboardingMapScreen() {
-  const categories = usePaisaStore((s) => s.categories);
-  const monthBudgets = usePaisaStore((s) => s.monthBudgets);
-  const setBudgetAllocation = usePaisaStore((s) => s.setBudgetAllocation);
-  const addCategory = usePaisaStore((s) => s.addCategory);
-  const removeCategory = usePaisaStore((s) => s.removeCategory);
-  const completeOnboarding = usePaisaStore((s) => s.completeOnboarding);
+  const categories = useFinancerStore((s) => s.categories);
+  const monthBudgets = useFinancerStore((s) => s.monthBudgets);
+  const setBudgetAllocation = useFinancerStore((s) => s.setBudgetAllocation);
+  const addCategory = useFinancerStore((s) => s.addCategory);
+  const removeCategory = useFinancerStore((s) => s.removeCategory);
+  const completeOnboarding = useFinancerStore((s) => s.completeOnboarding);
 
-  const currentMonth = usePaisaStore((s) => s.currentMonth);
+  const currentMonth = useFinancerStore((s) => s.currentMonth);
   const latestBudget =
     monthBudgets.find((b) => b.month === currentMonth) ??
     monthBudgets[monthBudgets.length - 1];

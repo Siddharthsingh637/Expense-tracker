@@ -73,7 +73,7 @@ function genId(_prefix: string): string {
   return `${hex()}${hex()}-${hex()}-4${hex().slice(1)}-${((8 + Math.floor(Math.random() * 4)).toString(16))}${hex().slice(1)}-${hex()}${hex()}${hex()}`;
 }
 
-export interface PaisaStore extends AppState {
+export interface FinancerStore extends AppState {
   // Onboarding
   completeOnboarding(): void;
   setCurrentMonth(month: string): void;
@@ -358,7 +358,7 @@ function generateDemoState(): Partial<AppState> {
   };
 }
 
-export const usePaisaStore = create<PaisaStore>()(
+export const useFinancerStore = create<FinancerStore>()(
   persist(
     (set) => ({
       ...initialState,
@@ -574,21 +574,21 @@ export const usePaisaStore = create<PaisaStore>()(
 
 const namespaceKey = (owner: string) => owner === 'guest' ? `${STORE_NAME}:guest` : `${STORE_NAME}:user:${owner}`;
 const freshState = () => ({ ...initialState, currentMonth: toYYYYMM(new Date()) });
-const persistState = (state: PaisaStore | AppState) => JSON.stringify({ state, version: 0 });
+const persistState = (state: FinancerStore | AppState) => JSON.stringify({ state, version: 0 });
 
 /** Switch the active dataset without merging ownership. Data from legacy
  * installs with no owner marker is quarantined in Guest Mode. */
 async function activateStore(owner: string): Promise<void> {
   const previousOwner = await AsyncStorage.getItem(STORE_OWNER_KEY);
-  const currentState = usePaisaStore.getState();
+  const currentState = useFinancerStore.getState();
 
-  if (previousOwner && previousOwner !== owner) {
-    await AsyncStorage.setItem(namespaceKey(previousOwner), persistState(currentState));
-  } else if (!previousOwner) {
+  if (activeStoreOwner && activeStoreOwner !== owner) {
+    await AsyncStorage.setItem(namespaceKey(activeStoreOwner), persistState(currentState));
+  } else if (!previousOwner && !activeStoreOwner) {
     // Legacy unowned records stay available locally but are never attributed to
     // whichever account happens to sign in first.
     await AsyncStorage.setItem(namespaceKey('guest'), persistState(currentState));
-  } else {
+  } else if (activeStoreOwner === owner) {
     await AsyncStorage.setItem(namespaceKey(owner), persistState(currentState));
   }
 
@@ -596,12 +596,12 @@ async function activateStore(owner: string): Promise<void> {
   await AsyncStorage.setItem(STORE_OWNER_KEY, owner);
 
   const saved = await AsyncStorage.getItem(namespaceKey(owner));
-  const parsed = saved ? JSON.parse(saved) as { state?: Partial<PaisaStore> } : null;
+  const parsed = saved ? JSON.parse(saved) as { state?: Partial<FinancerStore> } : null;
   const nextState = parsed?.state ? { ...freshState(), ...parsed.state } : freshState();
   if (nextState.monthBudgets && nextState.monthBudgets.length > 0) {
     nextState.isOnboarded = true;
   }
-  usePaisaStore.setState(nextState);
+  useFinancerStore.setState(nextState);
 }
 
 export async function activateStoreForUser(userId: string): Promise<void> {

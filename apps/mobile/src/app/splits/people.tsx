@@ -6,11 +6,11 @@ import { useState } from 'react';
 
 import { Colors, Spacing, Radius, TouchTarget, Fonts, FontSize } from '@/theme';
 import { Text, Avatar, Divider, EmptyState, Button } from '@/components';
-import { usePaisaStore } from '@/data/local/store';
+import { useFinancerStore } from '@/data/local/store';
 
 export default function PeopleScreen() {
-  const people = usePaisaStore((s) => s.people);
-  const addPerson = usePaisaStore((s) => s.addPerson);
+  const people = useFinancerStore((s) => s.people);
+  const addPerson = useFinancerStore((s) => s.addPerson);
   const [newName, setNewName] = useState('');
 
   const active = people.filter((p) => !p.isArchived);

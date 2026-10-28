@@ -1,7 +1,7 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "Paisa API",
+    "title": "Financer API",
     "description": "Expense Tracker backend. All amounts are integer paise; dates are ISO calendar dates.",
     "version": "1.0.0"
   },

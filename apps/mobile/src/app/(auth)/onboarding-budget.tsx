@@ -13,15 +13,15 @@ import * as Haptics from 'expo-haptics';
 
 import { Colors, Spacing, Radius, Fonts, FontSize, TouchTarget } from '@/theme';
 import { Text, Button, Keypad, AmountText } from '@/components';
-import { usePaisaStore } from '@/data/local/store';
+import { useFinancerStore } from '@/data/local/store';
 import { rupeesToPaise } from '@/lib/format';
 
 const START_DAYS = [1, 5, 10, 15, 20, 25];
 
 export default function OnboardingBudgetScreen() {
-  const currentMonth = usePaisaStore((s) => s.currentMonth);
-  const monthBudgets = usePaisaStore((s) => s.monthBudgets);
-  const budgetStartDay = usePaisaStore((s) => s.budgetStartDay);
+  const currentMonth = useFinancerStore((s) => s.currentMonth);
+  const monthBudgets = useFinancerStore((s) => s.monthBudgets);
+  const budgetStartDay = useFinancerStore((s) => s.budgetStartDay);
   const existingBudget = monthBudgets.find((b) => b.month === currentMonth);
 
   const [amountStr, setAmountStr] = useState(
@@ -29,8 +29,9 @@ export default function OnboardingBudgetScreen() {
   );
   const [startDay, setStartDay] = useState(existingBudget?.startDay ?? budgetStartDay ?? 1);
 
-  const setMonthBudget = usePaisaStore((s) => s.setMonthBudget);
-  const setBudgetStartDay = usePaisaStore((s) => s.setBudgetStartDay);
+  const setMonthBudget = useFinancerStore((s) => s.setMonthBudget);
+  const setBudgetStartDay = useFinancerStore((s) => s.setBudgetStartDay);
+  const completeOnboarding = useFinancerStore((s) => s.completeOnboarding);
 
   const paise = amountStr ? rupeesToPaise(Number(amountStr)) : 0;
   const canContinue = paise >= 100_00; // min ₹100
@@ -134,6 +135,16 @@ export default function OnboardingBudgetScreen() {
                 Enter at least ₹100
               </Text>
             )}
+            <Button
+              label="Skip for now"
+              onPress={() => {
+                completeOnboarding();
+                router.replace('/(tabs)');
+              }}
+              variant="ghost"
+              fullWidth
+              size="md"
+            />
           </View>
         </ScrollView>
       </KeyboardAvoidingView>

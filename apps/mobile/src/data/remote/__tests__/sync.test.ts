@@ -16,7 +16,7 @@ jest.mock('@/data/remote/api', () => ({
 }));
 
 import { startSyncService, stopSyncService, syncNow } from '../sync';
-import { activateStoreForUser, usePaisaStore } from '@/data/local/store';
+import { activateStoreForUser, useFinancerStore } from '@/data/local/store';
 import { MonthBudget, Transaction } from '@/engine/types';
 
 describe('mobile sync', () => {
@@ -24,7 +24,7 @@ describe('mobile sync', () => {
     stopSyncService();
     mockValues.clear();
     mockApiRequest.mockReset();
-    usePaisaStore.getState().resetAll();
+    useFinancerStore.getState().resetAll();
   });
 
   it('pushes an offline edit captured before applying a newer server snapshot', async () => {
@@ -33,8 +33,8 @@ describe('mobile sync', () => {
       place: 'Offline cafe edit', note: '', paymentMode: 'cash', date: '2026-10-22',
       time: '12:00', createdAt: '2026-10-22T12:00:00.000Z', provenance: 'user',
     };
-    usePaisaStore.setState({ transactions: [local] });
-    const state = usePaisaStore.getState();
+    useFinancerStore.setState({ transactions: [local] });
+    const state = useFinancerStore.getState();
     mockValues.set('paisa-sync:user-1:snapshot', JSON.stringify({
       category: state.categories, transaction: [{ ...local, amount: 1000 }],
       budget_period: state.monthBudgets, budget_allocation: state.budgetAllocations,
@@ -70,8 +70,8 @@ describe('mobile sync', () => {
       place: 'Receipt cafe', note: '', paymentMode: 'upi', billPhotoUri: 'file:///receipt.jpg',
       date: '2026-10-22', time: '12:00', createdAt: '2026-10-22T12:00:00.000Z', provenance: 'user',
     };
-    usePaisaStore.setState({ transactions: [txn] });
-    const state = usePaisaStore.getState();
+    useFinancerStore.setState({ transactions: [txn] });
+    const state = useFinancerStore.getState();
     mockValues.set('paisa-sync:user-1:snapshot', JSON.stringify({
       category: state.categories, transaction: [{ ...txn, billPhotoUri: undefined }],
       budget_period: state.monthBudgets, budget_allocation: state.budgetAllocations,
@@ -105,12 +105,12 @@ describe('mobile sync', () => {
 
   it('pulls account settings and pushes later offline changes', async () => {
     const settingsId = '33333333-3333-4333-8333-333333333333';
-    usePaisaStore.setState({ budgetStartDay: 1, aiEnabled: true });
+    useFinancerStore.setState({ budgetStartDay: 1, aiEnabled: true });
     mockValues.set('paisa-sync:user-1:snapshot', JSON.stringify({
-      category: usePaisaStore.getState().categories, transaction: usePaisaStore.getState().transactions,
-      budget_period: usePaisaStore.getState().monthBudgets, budget_allocation: usePaisaStore.getState().budgetAllocations,
-      person: usePaisaStore.getState().people.filter((person) => !person.isMe), group_bill: usePaisaStore.getState().groupBills,
-      settlement: usePaisaStore.getState().billSettlements,
+      category: useFinancerStore.getState().categories, transaction: useFinancerStore.getState().transactions,
+      budget_period: useFinancerStore.getState().monthBudgets, budget_allocation: useFinancerStore.getState().budgetAllocations,
+      person: useFinancerStore.getState().people.filter((person) => !person.isMe), group_bill: useFinancerStore.getState().groupBills,
+      settlement: useFinancerStore.getState().billSettlements,
     }));
     let firstPull = true;
     mockApiRequest.mockImplementation(async (path: string, init?: RequestInit) => {
@@ -129,7 +129,7 @@ describe('mobile sync', () => {
     });
 
     await syncNow();
-    usePaisaStore.setState({ budgetStartDay: 5 });
+    useFinancerStore.setState({ budgetStartDay: 5 });
     await syncNow();
 
     const pushes = mockApiRequest.mock.calls.filter(([path]) => path === '/sync/push');
@@ -140,11 +140,11 @@ describe('mobile sync', () => {
   });
 
   it('keeps exactly one built-in Me person when applying remote people', async () => {
-    const state = usePaisaStore.getState();
+    const state = useFinancerStore.getState();
     const me = state.people.find((person) => person.isMe)!;
     const friend = { id: 'person-remote-1', name: 'Friend', isMe: false, isArchived: false };
-    usePaisaStore.setState({ people: [me, friend] });
-    const snapshot = usePaisaStore.getState();
+    useFinancerStore.setState({ people: [me, friend] });
+    const snapshot = useFinancerStore.getState();
     mockValues.set('paisa-sync:user-1:snapshot', JSON.stringify({
       category: snapshot.categories, transaction: snapshot.transactions,
       budget_period: snapshot.monthBudgets, budget_allocation: snapshot.budgetAllocations,
@@ -161,8 +161,8 @@ describe('mobile sync', () => {
 
     await syncNow();
 
-    expect(usePaisaStore.getState().people.filter((person) => person.id === 'me')).toHaveLength(1);
-    expect(usePaisaStore.getState().people.filter((person) => person.id === friend.id)).toHaveLength(1);
+    expect(useFinancerStore.getState().people.filter((person) => person.id === 'me')).toHaveLength(1);
+    expect(useFinancerStore.getState().people.filter((person) => person.id === friend.id)).toHaveLength(1);
   });
 
   it('shows a safe, actionable message when a sync change is rejected', async () => {
@@ -171,7 +171,7 @@ describe('mobile sync', () => {
       place: 'Missing category test', note: '', paymentMode: 'cash', date: '2026-10-22',
       time: '12:00', createdAt: '2026-10-22T12:00:00.000Z', provenance: 'user',
     };
-    usePaisaStore.setState({ transactions: [txn] });
+    useFinancerStore.setState({ transactions: [txn] });
     mockApiRequest.mockImplementation(async (path: string) => {
       if (path.startsWith('/sync/pull')) return { changes: [], next_cursor: 0, has_more: false };
       if (path === '/sync/push') return { results: [{
@@ -194,8 +194,8 @@ describe('mobile sync', () => {
   it('does not resend acknowledged changes after a partial push rejection', async () => {
     const accepted = { id: '66666666-6666-4666-8666-666666666666', amount: 1000, categoryId: 'cat-0', place: 'Accepted', note: '', paymentMode: 'cash', date: '2026-10-22', time: '12:00', createdAt: '2026-10-22T12:00:00.000Z', provenance: 'user' } as Transaction;
     const rejected = { ...accepted, id: '77777777-7777-4777-8777-777777777777', place: 'Rejected' };
-    usePaisaStore.setState({ transactions: [accepted, rejected] });
-    const state = usePaisaStore.getState();
+    useFinancerStore.setState({ transactions: [accepted, rejected] });
+    const state = useFinancerStore.getState();
     mockValues.set('paisa-sync:user-1:snapshot', JSON.stringify({
       category: state.categories, transaction: [], budget_period: state.monthBudgets,
       budget_allocation: state.budgetAllocations, person: state.people.filter((person) => !person.isMe),
@@ -221,8 +221,8 @@ describe('mobile sync', () => {
 
   it('keeps a successful acknowledgement when the following pull temporarily fails', async () => {
     const txn = { id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', amount: 1200, categoryId: 'cat-0', place: 'Acked', note: '', paymentMode: 'upi', date: '2026-10-22', time: '12:00', createdAt: '2026-10-22T12:00:00.000Z', provenance: 'user' } as Transaction;
-    usePaisaStore.setState({ transactions: [txn] });
-    const state = usePaisaStore.getState();
+    useFinancerStore.setState({ transactions: [txn] });
+    const state = useFinancerStore.getState();
     mockValues.set('paisa-sync:user-1:snapshot', JSON.stringify({ category: state.categories, transaction: [], budget_period: state.monthBudgets, budget_allocation: state.budgetAllocations, person: state.people.filter((person) => !person.isMe), group_bill: state.groupBills, settlement: state.billSettlements }));
     let pulls = 0;
     mockApiRequest.mockImplementation(async (path: string, init?: RequestInit) => {
@@ -244,9 +244,9 @@ describe('mobile sync', () => {
   it('does not background-retry permanent failures and allows an explicit retry', async () => {
     const rejected = { id: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', amount: 1000, categoryId: 'cat-0', place: 'Needs category', note: '', paymentMode: 'cash', date: '2026-10-22', time: '12:00', createdAt: '2026-10-22T12:00:00.000Z', provenance: 'user' } as Transaction;
     const accepted = { ...rejected, id: 'cccccccc-cccc-4ccc-8ccc-cccccccccccc', place: 'Valid edit' };
-    usePaisaStore.setState({ transactions: [rejected] });
-    expect(usePaisaStore.getState().transactions.map((row) => row.id)).toContain(rejected.id);
-    const state = usePaisaStore.getState();
+    useFinancerStore.setState({ transactions: [rejected] });
+    expect(useFinancerStore.getState().transactions.map((row) => row.id)).toContain(rejected.id);
+    const state = useFinancerStore.getState();
     mockValues.set('paisa-sync:user-1:snapshot', JSON.stringify({ category: state.categories, transaction: [], budget_period: state.monthBudgets, budget_allocation: state.budgetAllocations, person: state.people.filter((person) => !person.isMe), group_bill: state.groupBills, settlement: state.billSettlements }));
     mockApiRequest.mockImplementation(async (path: string, init?: RequestInit) => {
       if (path.startsWith('/sync/pull')) return { changes: [], next_cursor: 0, has_more: false };
@@ -258,8 +258,8 @@ describe('mobile sync', () => {
     });
 
     await syncNow();
-    expect(usePaisaStore.getState().transactions.map((row) => row.id)).toContain(rejected.id);
-    usePaisaStore.setState({ transactions: [accepted, rejected] });
+    expect(useFinancerStore.getState().transactions.map((row) => row.id)).toContain(rejected.id);
+    useFinancerStore.setState({ transactions: [accepted, rejected] });
     await syncNow();
 
     const pushes = mockApiRequest.mock.calls.filter(([path]) => path === '/sync/push');
@@ -269,7 +269,7 @@ describe('mobile sync', () => {
     expect(secondPushIds).not.toContain(rejected.id);
     const snapshotAfterOtherEdit = JSON.parse(mockValues.get('paisa-sync:user-1:snapshot')!);
     expect(snapshotAfterOtherEdit.transaction.map((row: {id: string}) => row.id)).not.toContain(rejected.id);
-    expect(usePaisaStore.getState().transactions.map((row) => row.id)).toContain(rejected.id);
+    expect(useFinancerStore.getState().transactions.map((row) => row.id)).toContain(rejected.id);
 
     mockApiRequest.mockImplementation(async (path: string, init?: RequestInit) => {
       if (path.startsWith('/sync/pull')) return { changes: [], next_cursor: 0, has_more: false };
@@ -288,8 +288,8 @@ describe('mobile sync', () => {
     let signalPushStarted: (() => void) | undefined;
     const pushStarted = new Promise<void>((resolve) => { signalPushStarted = resolve; });
     const txn = { id: '99999999-9999-4999-8999-999999999999', amount: 1000, categoryId: 'cat-0', place: 'Concurrent', note: '', paymentMode: 'cash', date: '2026-10-22', time: '12:00', createdAt: '2026-10-22T12:00:00.000Z', provenance: 'user' } as Transaction;
-    usePaisaStore.setState({ transactions: [txn] });
-    const state = usePaisaStore.getState();
+    useFinancerStore.setState({ transactions: [txn] });
+    const state = useFinancerStore.getState();
     mockValues.set('paisa-sync:user-1:snapshot', JSON.stringify({ category: state.categories, transaction: [], budget_period: state.monthBudgets, budget_allocation: state.budgetAllocations, person: state.people.filter((person) => !person.isMe), group_bill: state.groupBills, settlement: state.billSettlements }));
     mockApiRequest.mockImplementation(async (path: string, init?: RequestInit) => {
       if (path.startsWith('/sync/pull')) return { changes: [], next_cursor: 0, has_more: false };
@@ -313,8 +313,8 @@ describe('mobile sync', () => {
       id: '55555555-5555-4555-8555-555555555555',
       month: '2026-10', totalPaise: 100_000, startDay: 1,
     };
-    usePaisaStore.setState({ monthBudgets: [budget] });
-    const state = usePaisaStore.getState();
+    useFinancerStore.setState({ monthBudgets: [budget] });
+    const state = useFinancerStore.getState();
     mockValues.set('paisa-sync:user-1:snapshot', JSON.stringify({
       category: state.categories, transaction: state.transactions, budget_period: [],
       budget_allocation: state.budgetAllocations, person: state.people.filter((person) => !person.isMe),
@@ -339,7 +339,7 @@ describe('mobile sync', () => {
 
   it('never uploads an account dataset under a different active session', async () => {
     await activateStoreForUser('account-a');
-    usePaisaStore.setState({ transactions: [{
+    useFinancerStore.setState({ transactions: [{
       id: '88888888-8888-4888-8888-888888888888', amount: 1000, categoryId: 'cat-0',
       place: 'Account A offline edit', note: '', paymentMode: 'cash', date: '2026-10-22',
       time: '12:00', createdAt: '2026-10-22T12:00:00.000Z', provenance: 'user',

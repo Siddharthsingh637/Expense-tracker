@@ -120,8 +120,8 @@ def _check_narrative(payload: dict[str, Any], report: dict[str, Any]) -> dict[st
         normalized = number.replace(",", "")
         if currency:
             try:
-                rupees, _, paisa = normalized.partition(".")
-                as_paise = str(int(rupees) * 100 + int((paisa + "00")[:2]))
+                rupees, _, paise = normalized.partition(".")
+                as_paise = str(int(rupees) * 100 + int((paise + "00")[:2]))
             except ValueError:
                 invalid = True
                 break

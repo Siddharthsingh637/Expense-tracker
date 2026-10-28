@@ -25,7 +25,7 @@ import {
 
 import { Colors, Spacing, Radius, TouchTarget, Fonts, FontSize } from '@/theme';
 import { Text, AmountText, Divider, Button, Chip } from '@/components';
-import { usePaisaStore } from '@/data/local/store';
+import { useFinancerStore } from '@/data/local/store';
 import { photoSource } from '@/data/remote/photo-source';
 import { useToastStore } from '@/lib/toast-store';
 import {
@@ -39,11 +39,11 @@ import { PaymentMode } from '@/engine/types';
 
 export default function TransactionDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const transactions = usePaisaStore((s) => s.transactions);
-  const categories = usePaisaStore((s) => s.categories);
-  const updateTransaction = usePaisaStore((s) => s.updateTransaction);
-  const deleteTransaction = usePaisaStore((s) => s.deleteTransaction);
-  const restoreTransaction = usePaisaStore((s) => s.restoreTransaction);
+  const transactions = useFinancerStore((s) => s.transactions);
+  const categories = useFinancerStore((s) => s.categories);
+  const updateTransaction = useFinancerStore((s) => s.updateTransaction);
+  const deleteTransaction = useFinancerStore((s) => s.deleteTransaction);
+  const restoreTransaction = useFinancerStore((s) => s.restoreTransaction);
   const showToast = useToastStore((s) => s.showToast);
 
   const txn = transactions.find((t) => t.id === id);

@@ -26,7 +26,7 @@ async function request<T>(path: string, init: RequestInit = {}, authenticated = 
   try {
     response = await fetch(`${API_BASE_URL}/api/v1${path}`, { ...init, headers });
   } catch {
-    throw new ApiError(`Cannot reach the Paisa server at ${API_BASE_URL}. Check the server and API URL.`, 0, 'network_error');
+    throw new ApiError(`Cannot reach the Financer server at ${API_BASE_URL}. Check the server and API URL.`, 0, 'network_error');
   }
   if (response.status === 401 && authenticated && requestOwnerId && session?.user.id === requestOwnerId && !retried && session?.refresh_token) {
     const refreshed = await refreshSession();

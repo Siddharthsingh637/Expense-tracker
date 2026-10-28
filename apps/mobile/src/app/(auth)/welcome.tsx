@@ -18,7 +18,7 @@ import { Button } from '@/components';
 import { authenticate, ApiError } from '@/data/remote/api';
 import { startSyncService } from '@/data/remote/sync';
 import { useSyncStatus } from '@/lib/sync-status';
-import { activateGuestStore, activateStoreForUser, usePaisaStore } from '@/data/local/store';
+import { activateGuestStore, activateStoreForUser, useFinancerStore } from '@/data/local/store';
 
 type AuthMode = 'welcome' | 'signin' | 'register';
 
@@ -29,7 +29,7 @@ export default function WelcomeScreen() {
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const isOnboarded = usePaisaStore((s) => s.isOnboarded);
+  const isOnboarded = useFinancerStore((s) => s.isOnboarded);
 
   async function handleContinue() {
     if (loading) return;
@@ -39,14 +39,14 @@ export default function WelcomeScreen() {
       const session = await authenticate(mode === 'signin' ? 'login' : 'register', email, password);
       await activateStoreForUser(session.user.id);
       if (name.trim()) {
-        usePaisaStore.getState().updatePerson('me', { name: name.trim() });
+        useFinancerStore.getState().updatePerson('me', { name: name.trim() });
       }
       try {
         startSyncService((status, message) => useSyncStatus.getState().setStatus(status, message));
       } catch {
         // Safe when offline
       }
-      const onboarded = usePaisaStore.getState().isOnboarded;
+      const onboarded = useFinancerStore.getState().isOnboarded;
       router.replace(onboarded ? '/(tabs)' : '/(auth)/onboarding-budget');
     } catch (cause) {
       const message = cause instanceof ApiError ? cause.message : 'Could not connect to your account.';
@@ -69,7 +69,7 @@ export default function WelcomeScreen() {
           {/* Hero */}
           <View style={styles.hero}>
             <AppText variant="serifBold" style={styles.wordmark}>
-              Paisa
+              Financer
             </AppText>
             <AppText variant="body" color={Colors.text2} center style={styles.tagline}>
               Track fast. Budget smart. Settle fair.
@@ -93,10 +93,11 @@ export default function WelcomeScreen() {
                 size="lg"
               />
               <Button
-                label="Continue as guest"
+                label="Use as guest"
+                accessibilityLabel="Use as guest"
                 onPress={() => {
                   void activateGuestStore().then(() => {
-                    const onboarded = usePaisaStore.getState().isOnboarded;
+                    const onboarded = useFinancerStore.getState().isOnboarded;
                     router.replace(onboarded ? '/(tabs)' : '/(auth)/onboarding-budget');
                   });
                 }}

@@ -1,6 +1,6 @@
-# Paisa API
+# Financer API
 
-FastAPI backend for Paisa's local-first mobile app. The phone remains the source of truth for balances, split calculations, summaries, and anomaly detection. The API handles accounts, sync storage, private receipt files, and optional AI drafts.
+FastAPI backend for Financer's local-first mobile app. The phone remains the source of truth for balances, split calculations, summaries, and anomaly detection. The API handles accounts, sync storage, private receipt files, and optional AI drafts.
 
 ## Requirements and first run
 
@@ -14,11 +14,11 @@ pnpm dev
 
 Without Docker, start a local PostgreSQL service, configure `DATABASE_URL` and `JWT_SECRET`, then run `pnpm dev`; the API task applies migrations and starts FastAPI. See the repository [no-Docker setup](../../README.md#run-api-and-mobile-locally-without-docker-macoshomebrew) for the exact commands. `pnpm api:dev` starts only the API without Docker; `pnpm --filter @expense-tracker/api dev:docker` starts the Docker-backed API. API docs are at `http://127.0.0.1:8000/docs`; liveness is `/health`.
 
-The default AI provider is Meta Model API (Muse Spark). Add your `MODEL_API_KEY` to `apps/api/.env.local` to enable live AI calls; until then, Paisa uses the deterministic built-in mock. `MODEL_API_BASE_URL` defaults to `https://api.meta.ai`, and the default fast and smart models are both `muse-spark-1.3`. The existing Anthropic integration remains available with `AI_PROVIDER=anthropic` and `ANTHROPIC_API_KEY`. `.env.local` is ignored by Git and initialized with local-only random credentials.
+The default AI provider is Meta Model API (Muse Spark). Add your `MODEL_API_KEY` to `apps/api/.env.local` to enable live AI calls; until then, Financer uses the deterministic built-in mock. `MODEL_API_BASE_URL` defaults to `https://api.meta.ai`, and the default fast and smart models are both `muse-spark-1.3`. The existing Anthropic integration remains available with `AI_PROVIDER=anthropic` and `ANTHROPIC_API_KEY`. `.env.local` is ignored by Git and initialized with local-only random credentials.
 
 ## Neon PostgreSQL
 
-Paisa uses the existing Neon project `solitary-brook-48067519`, organization `org-damp-mode-82101357`, branch `production`. The API connects with the pooled `DATABASE_URL`; Alembic uses `DATABASE_URL_UNPOOLED` (direct) when present. Set `MIGRATION_DATABASE_URL` only when your hosting environment names the direct URL differently or you need an explicit override. The settings normalize Neon `postgresql://` URLs to the installed `psycopg` v3 driver while preserving query parameters.
+Financer uses the existing Neon project `solitary-brook-48067519`, organization `org-damp-mode-82101357`, branch `production`. The API connects with the pooled `DATABASE_URL`; Alembic uses `DATABASE_URL_UNPOOLED` (direct) when present. Set `MIGRATION_DATABASE_URL` only when your hosting environment names the direct URL differently or you need an explicit override. The settings normalize Neon `postgresql://` URLs to the installed `psycopg` v3 driver while preserving query parameters.
 
 After installing the current Neon CLI and authenticating with `neon auth`, link this repository and pull only PostgreSQL variables into the API's ignored local environment file:
 

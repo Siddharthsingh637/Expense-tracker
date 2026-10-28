@@ -1,5 +1,5 @@
 import { RemoteAIService } from '../remote';
-import { usePaisaStore } from '@/data/local/store';
+import { useFinancerStore } from '@/data/local/store';
 import { MonthReport } from '@/engine/types';
 
 const mockRequest = jest.fn();
@@ -37,7 +37,7 @@ describe('RemoteAIService', () => {
       '/ai/parse-entry', '/ai/suggest-category', '/ai/propose-budget', '/ai/draft-split',
       '/ai/ask', '/ai/month-narrative', '/ai/parse-receipt',
     ]);
-    expect(usePaisaStore.getState()).toBeDefined();
+    expect(useFinancerStore.getState()).toBeDefined();
   });
 
   it('uses a safe local receipt fallback when there is no session', async () => {

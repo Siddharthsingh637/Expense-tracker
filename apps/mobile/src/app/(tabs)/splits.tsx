@@ -8,14 +8,14 @@ import { Users, Plus, ArrowRight } from 'lucide-react-native';
 
 import { Colors, Spacing, Radius, TouchTarget } from '@/theme';
 import { Text, AmountText, EmptyState, Divider, Avatar } from '@/components';
-import { usePaisaStore } from '@/data/local/store';
+import { useFinancerStore } from '@/data/local/store';
 import { computeBalances } from '@/engine/splits';
 import { formatMoney, formatDate } from '@/lib/format';
 import { ME_PERSON_ID } from '@/lib/constants';
 
 export default function SplitsScreen() {
-  const groupBills = usePaisaStore((s) => s.groupBills);
-  const people = usePaisaStore((s) => s.people);
+  const groupBills = useFinancerStore((s) => s.groupBills);
+  const people = useFinancerStore((s) => s.people);
 
   const openBills = groupBills.filter((b) => !b.isSettled);
   const settledBills = groupBills.filter((b) => b.isSettled);

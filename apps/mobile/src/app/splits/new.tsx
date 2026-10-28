@@ -15,7 +15,7 @@ import * as Haptics from 'expo-haptics';
 
 import { Colors, Spacing, Radius, TouchTarget, FontSize } from '@/theme';
 import { Text, Button, AmountText, Avatar, Divider, Chip } from '@/components';
-import { usePaisaStore } from '@/data/local/store';
+import { useFinancerStore } from '@/data/local/store';
 import { useToastStore } from '@/lib/toast-store';
 import { computeBalances, simplifyDebts } from '@/engine/splits';
 import { GroupBill, SplitMethod, Paise } from '@/engine/types';
@@ -29,11 +29,11 @@ const METHODS: Array<{ id: SplitMethod; label: string }> = [
 ];
 
 export default function NewSplitScreen() {
-  const people = usePaisaStore((s) => s.people);
-  const categories = usePaisaStore((s) => s.categories);
-  const addPerson = usePaisaStore((s) => s.addPerson);
-  const addGroupBill = usePaisaStore((s) => s.addGroupBill);
-  const addSettlement = usePaisaStore((s) => s.addSettlement);
+  const people = useFinancerStore((s) => s.people);
+  const categories = useFinancerStore((s) => s.categories);
+  const addPerson = useFinancerStore((s) => s.addPerson);
+  const addGroupBill = useFinancerStore((s) => s.addGroupBill);
+  const addSettlement = useFinancerStore((s) => s.addSettlement);
   const showToast = useToastStore((s) => s.showToast);
 
   const activePeople = useMemo(() => people.filter((p) => !p.isArchived), [people]);
@@ -86,7 +86,7 @@ export default function NewSplitScreen() {
     const mePerson = people.find((p) => p.isMe);
     // Find newly generated person after store update
     setTimeout(() => {
-      const latestPeople = usePaisaStore.getState().people;
+      const latestPeople = useFinancerStore.getState().people;
       const created = latestPeople.find((p) => p.name === trimmed && !p.isMe);
       if (created) {
         setSelectedPersonIds((prev) => [...prev, created.id]);

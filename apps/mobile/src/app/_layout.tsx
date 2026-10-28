@@ -17,7 +17,7 @@ import { AppState, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import { Colors } from '@/theme';
-import { activateGuestStore, activateStoreForUser, usePaisaStore } from '@/data/local/store';
+import { activateGuestStore, activateStoreForUser, useFinancerStore } from '@/data/local/store';
 import { Toast } from '@/components';
 import { useToastStore } from '@/lib/toast-store';
 import { restoreSession, hasSession } from '@/data/remote/api';
@@ -27,7 +27,7 @@ import { useSyncStatus } from '@/lib/sync-status';
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
-  const isOnboarded = usePaisaStore((s) => s.isOnboarded);
+  const isOnboarded = useFinancerStore((s) => s.isOnboarded);
   const toast = useToastStore();
   const [authReady, setAuthReady] = useState(false);
   const pathname = usePathname();
@@ -66,20 +66,30 @@ export default function RootLayout() {
   useEffect(() => {
     if ((!fontsLoaded && !fontError) || !authReady) return;
     const inOnboarding = pathname?.includes('onboarding-budget') || pathname?.includes('onboarding-map');
-    if (hasSession() && !isOnboarded) {
-      if (!inOnboarding) {
-        router.replace('/(auth)/onboarding-budget');
+    const inWelcome = pathname?.includes('welcome');
+
+    if (hasSession()) {
+      if (!isOnboarded) {
+        if (!inOnboarding) {
+          router.replace('/(auth)/onboarding-budget');
+        }
+      } else {
+        if (inOnboarding || inWelcome) {
+          router.replace('/(tabs)');
+        }
       }
       return;
     }
-    if (!hasSession() && !isOnboarded) {
-      if (!pathname?.includes('welcome')) {
+
+    // Guest / Unauthenticated flow
+    if (!isOnboarded) {
+      if (!inWelcome && !inOnboarding) {
         router.replace('/(auth)/welcome');
       }
-      return;
-    }
-    if (isOnboarded && (inOnboarding || pathname?.includes('welcome'))) {
-      router.replace('/(tabs)');
+    } else {
+      if (inOnboarding) {
+        router.replace('/(tabs)');
+      }
     }
   }, [fontsLoaded, fontError, isOnboarded, authReady, pathname]);
 

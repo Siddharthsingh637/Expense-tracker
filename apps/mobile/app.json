@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "Paisa",
+    "name": "Financer",
     "slug": "paisa",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -17,7 +17,11 @@
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "permissions": [
+        "android.permission.RECORD_AUDIO"
+      ],
+      "package": "com.siddharth637.paisa"
     },
     "web": {
       "output": "static",
@@ -36,14 +40,20 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "Paisa uses your photos to attach bill receipts.",
-          "cameraPermission": "Paisa uses your camera to photograph receipts."
+          "photosPermission": "Financer uses your photos to attach bill receipts.",
+          "cameraPermission": "Financer uses your camera to photograph receipts."
         }
       ]
     ],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "e65326d5-860a-46ee-8407-c71a0e04c7c4"
+      }
     }
   }
 }

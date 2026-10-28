@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AppState, Category, Transaction, MonthBudget, BudgetAllocation, Person, GroupBill, BillSettlement } from '@/engine/types';
 import { apiRequest, currentUser, hasSession, isMockSession } from './api';
-import { activeStoreUser, usePaisaStore } from '../local/store';
+import { activeStoreUser, useFinancerStore } from '../local/store';
 import { sha256 } from './sha256';
 
 type Resource = 'category' | 'transaction' | 'budget_period' | 'budget_allocation' | 'person' | 'group_bill' | 'settlement' | 'user_settings';
@@ -39,7 +39,7 @@ function stableUuid(value: string): string {
 }
 
 function makeIdsSyncable(): void {
-  const state = usePaisaStore.getState();
+  const state = useFinancerStore.getState();
   const remap = new Map<string, string>();
   const id = (value: string) => {
     if (!value || value === 'me' || /^cat-[0-8]$/.test(value) || uuidPattern.test(value)) return value;
@@ -60,7 +60,7 @@ function makeIdsSyncable(): void {
   }));
   const billSettlements = state.billSettlements.map((row) => ({ ...row, id: id(row.id), groupBillId: id(row.groupBillId), fromPersonId: id(row.fromPersonId), toPersonId: id(row.toPersonId) }));
   if (JSON.stringify({ categories, transactions, monthBudgets, budgetAllocations, people, groupBills, billSettlements }) !== JSON.stringify({ categories: state.categories, transactions: state.transactions, monthBudgets: state.monthBudgets, budgetAllocations: state.budgetAllocations, people: state.people, groupBills: state.groupBills, billSettlements: state.billSettlements })) {
-    usePaisaStore.setState({ categories, transactions, monthBudgets, budgetAllocations, people, groupBills, billSettlements });
+    useFinancerStore.setState({ categories, transactions, monthBudgets, budgetAllocations, people, groupBills, billSettlements });
   }
 }
 
@@ -188,7 +188,7 @@ async function pushChanges(changes: Change[], userId: string): Promise<PushResul
 }
 
 async function uploadPendingPhotos(userId: string): Promise<string[]> {
-  const state = usePaisaStore.getState();
+  const state = useFinancerStore.getState();
   const uploaded: string[] = [];
   for (const transaction of state.transactions) {
     assertSyncOwner(userId);
@@ -208,7 +208,7 @@ async function uploadPendingPhotos(userId: string): Promise<string[]> {
       body: bytes as unknown as BodyInit,
     });
     assertSyncOwner(userId);
-    usePaisaStore.setState((current) => ({
+    useFinancerStore.setState((current) => ({
       transactions: current.transactions.map((item) => item.id === transaction.id ? { ...item, billPhotoUri: `attachment:${attachmentId}` } : item),
     }));
     uploaded.push(transaction.id);
@@ -217,7 +217,7 @@ async function uploadPendingPhotos(userId: string): Promise<string[]> {
 }
 
 function applyPulledChanges(changes: PullPage['changes']) {
-  const state = usePaisaStore.getState();
+  const state = useFinancerStore.getState();
   const buckets: Record<string, any[]> = {
     category: [...state.categories], transaction: [...state.transactions], budget_period: [...state.monthBudgets],
     budget_allocation: [...state.budgetAllocations], person: state.people.filter((person) => !person.isMe), group_bill: [...state.groupBills], settlement: [...state.billSettlements],
@@ -228,7 +228,7 @@ function applyPulledChanges(changes: PullPage['changes']) {
       remoteSettingsId = change.data?.id ?? change.id;
       if (change.op === 'upsert' && !change.deleted_at) {
         const toggles = change.data.aiFeatureToggles ?? {};
-        usePaisaStore.setState((current) => ({
+        useFinancerStore.setState((current) => ({
           budgetStartDay: Number(change.data.budgetStartDay ?? current.budgetStartDay),
           aiEnabled: Boolean(change.data.aiEnabled ?? current.aiEnabled),
           aiFeatureToggles: {
@@ -266,7 +266,7 @@ function applyPulledChanges(changes: PullPage['changes']) {
     else bucket.push(value);
   }
   const hasExistingBudgets = (buckets.budget_period as MonthBudget[]).length > 0;
-  usePaisaStore.setState({
+  useFinancerStore.setState({
     categories: buckets.category as Category[], transactions: buckets.transaction as Transaction[],
     monthBudgets: buckets.budget_period as MonthBudget[], budgetAllocations: buckets.budget_allocation as BudgetAllocation[],
     people: [state.people.find((person) => person.isMe) ?? { id: 'me', name: 'Me', isMe: true, isArchived: false }, ...(buckets.person as Person[]).filter((person) => person.id !== 'me' && !person.isMe)],
@@ -299,7 +299,7 @@ async function pullChanges(userId: string): Promise<void> {
 }
 
 function remapLegacyCategories(changes: Change[]): Change[] {
-  const remoteByOrder = new Map(usePaisaStore.getState().categories.map((category) => [category.sortOrder, category.id]));
+  const remoteByOrder = new Map(useFinancerStore.getState().categories.map((category) => [category.sortOrder, category.id]));
   const legacyId = (value: unknown) => typeof value === 'string' && /^cat-[0-8]$/.test(value)
     ? remoteByOrder.get(Number(value.slice(4))) ?? value : value;
   return changes.map((change) => ({ ...change, data: {
@@ -335,7 +335,7 @@ export async function syncNow(manual = false): Promise<void> {
     }
     // Capture local edits before pull, otherwise a newer server copy would
     // overwrite an offline edit before the diff is calculated.
-    pendingForFailure = changesSince(snapshot, usePaisaStore.getState());
+    pendingForFailure = changesSince(snapshot, useFinancerStore.getState());
     const pendingLocalChanges = pendingForFailure.filter((change) => !blocked.has(blockedKey(change)));
     if (pendingForFailure.length && !pendingLocalChanges.length) {
       syncStatusListener?.('error', 'A change needs attention. Review it in Sync now before retrying.');
@@ -350,13 +350,13 @@ export async function syncNow(manual = false): Promise<void> {
       addBlockedChanges(blocked, pendingLocalChanges.filter((change) => rejectedKeys.has(`${change.resource}:${change.id}`)));
       await AsyncStorage.setItem(blockedKeyForUser, JSON.stringify([...blocked]));
       const unacknowledged = pendingForFailure.filter((change) => blocked.has(blockedKey(change)));
-      acknowledgedSnapshot = currentTracked(usePaisaStore.getState());
+      acknowledgedSnapshot = currentTracked(useFinancerStore.getState());
       preserveFailedChanges(acknowledgedSnapshot, snapshot, rejected);
       preserveUnacknowledgedChanges(acknowledgedSnapshot, snapshot, unacknowledged);
       // Persist each server acknowledgement before a subsequent pull can fail.
       await AsyncStorage.setItem(snapshotKey, JSON.stringify(acknowledgedSnapshot));
       await pullChanges(user.id);
-      acknowledgedSnapshot = currentTracked(usePaisaStore.getState());
+      acknowledgedSnapshot = currentTracked(useFinancerStore.getState());
       preserveFailedChanges(acknowledgedSnapshot, snapshot, rejected);
       preserveUnacknowledgedChanges(acknowledgedSnapshot, snapshot, unacknowledged);
       // Persist accepted acknowledgements before another stage can fail.
@@ -364,7 +364,7 @@ export async function syncNow(manual = false): Promise<void> {
     }
     const uploadedPhotoTransactions = await uploadPendingPhotos(user.id);
     if (uploadedPhotoTransactions.length) {
-      const photoChanges = changesSince(acknowledgedSnapshot ?? snapshot, usePaisaStore.getState()).filter((change) =>
+      const photoChanges = changesSince(acknowledgedSnapshot ?? snapshot, useFinancerStore.getState()).filter((change) =>
         change.resource === 'transaction' && uploadedPhotoTransactions.includes(change.id),
       );
       const photoFailures = (await pushChanges(photoChanges, user.id)).filter((item) => !['applied', 'unchanged'].includes(item.status));
@@ -373,16 +373,16 @@ export async function syncNow(manual = false): Promise<void> {
       addBlockedChanges(blocked, photoChanges.filter((change) => photoFailureKeys.has(`${change.resource}:${change.id}`)));
       await AsyncStorage.setItem(blockedKeyForUser, JSON.stringify([...blocked]));
       const photoBaseline = acknowledgedSnapshot;
-      acknowledgedSnapshot = currentTracked(usePaisaStore.getState());
+      acknowledgedSnapshot = currentTracked(useFinancerStore.getState());
       preserveFailedChanges(acknowledgedSnapshot, photoBaseline, photoFailures);
       await AsyncStorage.setItem(snapshotKey, JSON.stringify(acknowledgedSnapshot));
       await pullChanges(user.id);
-      const afterPhotoPush = currentTracked(usePaisaStore.getState());
+      const afterPhotoPush = currentTracked(useFinancerStore.getState());
       preserveFailedChanges(afterPhotoPush, acknowledgedSnapshot, photoFailures);
       acknowledgedSnapshot = afterPhotoPush;
     }
     assertSyncOwner(user.id);
-    acknowledgedSnapshot ??= currentTracked(usePaisaStore.getState());
+    acknowledgedSnapshot ??= currentTracked(useFinancerStore.getState());
     // Keep server-accepted changes acknowledged, while retaining the prior
     // baseline for rejected/stale records so user edits remain queued.
     for (const failed of rejected) {
@@ -435,7 +435,7 @@ export function startSyncService(onStatus?: (status: 'idle' | 'syncing' | 'error
   }
   if (unsubscribe) return;
 
-  unsubscribe = usePaisaStore.subscribe((state, previous) => {
+  unsubscribe = useFinancerStore.subscribe((state, previous) => {
     if (JSON.stringify(currentTracked(state)) === JSON.stringify(currentTracked(previous))) return;
     if (scheduled) clearTimeout(scheduled);
     scheduled = setTimeout(() => { void syncNow(); }, 900);

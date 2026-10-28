@@ -33,7 +33,7 @@ import {
 
 import { Colors, Spacing, Radius, TouchTarget } from '@/theme';
 import { Text, DraftCard, Chip, Avatar, AmountText } from '@/components';
-import { usePaisaStore } from '@/data/local/store';
+import { useFinancerStore } from '@/data/local/store';
 import { aiService } from '@/ai';
 import { AIProcessedMessage } from '@/ai/types';
 import { formatMoney, toISODate } from '@/lib/format';
@@ -60,19 +60,19 @@ const SUGGESTED_PROMPTS = [
 ];
 
 export default function AIAssistantScreen() {
-  const aiEnabled = usePaisaStore((s) => s.aiEnabled);
-  const transactions = usePaisaStore((s) => s.transactions);
-  const allocations = usePaisaStore((s) => s.budgetAllocations);
-  const currentMonth = usePaisaStore((s) => s.currentMonth);
-  const categories = usePaisaStore((s) => s.categories);
-  const people = usePaisaStore((s) => s.people);
+  const aiEnabled = useFinancerStore((s) => s.aiEnabled);
+  const transactions = useFinancerStore((s) => s.transactions);
+  const allocations = useFinancerStore((s) => s.budgetAllocations);
+  const currentMonth = useFinancerStore((s) => s.currentMonth);
+  const categories = useFinancerStore((s) => s.categories);
+  const people = useFinancerStore((s) => s.people);
 
   // Actions
-  const addTransaction = usePaisaStore((s) => s.addTransaction);
-  const deleteTransaction = usePaisaStore((s) => s.deleteTransaction);
-  const addGroupBill = usePaisaStore((s) => s.addGroupBill);
-  const addPerson = usePaisaStore((s) => s.addPerson);
-  const setBudgetAllocation = usePaisaStore((s) => s.setBudgetAllocation);
+  const addTransaction = useFinancerStore((s) => s.addTransaction);
+  const deleteTransaction = useFinancerStore((s) => s.deleteTransaction);
+  const addGroupBill = useFinancerStore((s) => s.addGroupBill);
+  const addPerson = useFinancerStore((s) => s.addPerson);
+  const setBudgetAllocation = useFinancerStore((s) => s.setBudgetAllocation);
   const showToast = useToastStore((s) => s.showToast);
 
   const [input, setInput] = useState('');
@@ -82,7 +82,7 @@ export default function AIAssistantScreen() {
       id: 'welcome',
       sender: 'assistant',
       timestamp: 'Just now',
-      text: "Hi, I’m Paisa AI. I can help with money questions, your recorded spending, budgets, and bill splits. I’ll only use your expense data when it helps answer what you asked.",
+      text: "Hi, I’m Financer AI. I can help with money questions, your recorded spending, budgets, and bill splits. I’ll only use your expense data when it helps answer what you asked.",
     },
   ]);
 
